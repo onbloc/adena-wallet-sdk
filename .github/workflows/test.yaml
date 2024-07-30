@@ -8,4 +8,4 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: ./.github/actions/setup
-      - run: yarn test:ci
+      - run: ./node_modules/.bin/jest
