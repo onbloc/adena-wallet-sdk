@@ -1,0 +1,20 @@
+{
+  "name": "adena-wallet-sdk",
+  "version": "0.0.1",
+  "private": true,
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/onbloc/adena-wallet-sdk"
+  },
+  "scripts": {
+    "build": "yarn workspaces foreach -vptR run build",
+    "lint": "yarn workspaces foreach -vA run lint",
+    "lint:fix": "yarn workspaces foreach -vA run lint:fix",
+    "test": "yarn workspaces foreach -vA run test",
+    "test:ci": "yarn workspaces foreach -vA run test:ci"
+  },
+  "workspaces": [
+    "packages/sdk"
+  ],
+  "packageManager": "yarn@4.3.1"
+}

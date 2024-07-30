@@ -1,0 +1,18 @@
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+
+jobs:
+  lints:
+    name: Linter
+    uses: ./.github/workflows/lint.yaml
+
+  tests:
+    name: Test
+    uses: ./.github/workflows/test.yaml
+
+  build:
+    name: Build
+    uses: ./.github/workflows/build.yaml

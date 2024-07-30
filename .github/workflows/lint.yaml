@@ -1,0 +1,10 @@
+on:
+  workflow_call:
+  workflow_dispatch:
+
+jobs:
+  lints:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: ./.github/actions/setup
+      - run: yarn lint

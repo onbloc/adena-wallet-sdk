@@ -1,0 +1,46 @@
+{
+  "name": "@adena-wallet/sdk",
+  "version": "0.0.1",
+  "description": "Adena Wallet SDK",
+  "license": "MIT",
+  "author": "Onbloc, Inc.",
+  "homepage": "https://www.adena.app",
+  "main": "./bin/index.js",
+  "files": [
+    "bin/**/*"
+  ],
+  "publishConfig": {
+    "access": "public",
+    "registry": "https://registry.npmjs.org"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/onbloc/adena-wallet-sdk",
+    "directory": "packages/sdk"
+  },
+  "keywords": [
+    "adena",
+    "wallet",
+    "gno",
+    "sdk",
+    "js"
+  ],
+  "scripts": {
+    "build": "yarn tsc",
+    "lint": "eslint",
+    "lint:fix": "yarn lint --fix",
+    "test": "jest",
+    "test:ci": "jest --coverage --passWithNoTests "
+  },
+  "devDependencies": {
+    "@types/eslint": "^9",
+    "@types/node": "^22.0.0",
+    "@typescript-eslint/eslint-plugin": "^7.18.0",
+    "@typescript-eslint/parser": "^7.18.0",
+    "eslint": "^9.8.0",
+    "eslint-config-prettier": "^9.1.0",
+    "prettier": "^3.3.3",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.5.4"
+  }
+}

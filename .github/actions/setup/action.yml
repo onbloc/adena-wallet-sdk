@@ -1,0 +1,18 @@
+name: Setup
+description: Set up project environment.
+runs:
+  using: composite
+  steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Cache dependencies
+      uses: actions/cache@v4
+      with:
+        path: ~/.yarn
+        key: yarn-${{ hashFiles('yarn.lock') }}
+        restore-keys: yarn-
+
+    - name: Install modules
+      shell: sh
+      run: yarn install

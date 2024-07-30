@@ -1,0 +1,22 @@
+# Dependencies
+node_modules
+/.pnp
+.pnp.*
+.yarn/*
+!.yarn/patches
+!.yarn/plugins
+!.yarn/releases
+!.yarn/sdks
+!.yarn/versions
+
+# testing
+/coverage
+
+# Build files
+build
+bin
+
+# Dev environment metadata
+.idea
+.DS_Store
+*.log
