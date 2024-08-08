@@ -1,4 +1,4 @@
-import { EMessageType } from "./types";
+import { EMessageType } from './types';
 
 export { EMessageType };
-export * from "./methods";
+export * from './methods';

@@ -29,10 +29,8 @@
   ],
   "scripts": {
     "build": "tsup",
-    "lint": "eslint",
-    "lint:fix": "yarn lint --fix",
-    "format": "prettier src/ --check",
-    "format:fix": "prettier src/ --write",
+    "lint": "prettier src/ --check && eslint",
+    "lint:fix": "prettier src/ --write && eslint --fix",
     "test": "jest",
     "test:ci": "jest --coverage --passWithNoTests "
   },

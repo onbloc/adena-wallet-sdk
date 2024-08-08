@@ -1,6 +1,6 @@
-import { getAdena } from "../utils";
-import { EAdenaResponseStatus } from "../types/common";
-import { SwitchNetworkResponseType } from "../types/methods/network";
+import { getAdena } from '../utils';
+import { EAdenaResponseStatus } from '../types/common';
+import { SwitchNetworkResponseType } from '../types/methods/network';
 
 /**
  * Switches the Adena network to the given chain ID
@@ -9,19 +9,19 @@ import { SwitchNetworkResponseType } from "../types/methods/network";
  * @returns Nothing, throws an error if it fails
  */
 export const switchNetwork = async (chainId: string): Promise<void> => {
-	const adena = getAdena();
+  const adena = getAdena();
 
-	const response = await adena.SwitchNetwork(chainId);
-	if (
-		(response.status === EAdenaResponseStatus.SUCCESS &&
-			response.type === SwitchNetworkResponseType.SWITCH_NETWORK_SUCCESS) ||
-		(response.status === EAdenaResponseStatus.FAILURE &&
-			response.type === SwitchNetworkResponseType.REDUNDANT_CHANGE_REQUEST)
-	) {
-		return;
-	}
+  const response = await adena.SwitchNetwork(chainId);
+  if (
+    (response.status === EAdenaResponseStatus.SUCCESS &&
+      response.type === SwitchNetworkResponseType.SWITCH_NETWORK_SUCCESS) ||
+    (response.status === EAdenaResponseStatus.FAILURE &&
+      response.type === SwitchNetworkResponseType.REDUNDANT_CHANGE_REQUEST)
+  ) {
+    return;
+  }
 
-	throw new Error(`Unable to switch Adena network: ${response.message}`);
+  throw new Error(`Unable to switch Adena network: ${response.message}`);
 };
 
 /**
@@ -33,13 +33,13 @@ export const switchNetwork = async (chainId: string): Promise<void> => {
  * @returns Nothing, throws an error if it fails
  */
 export const addNetwork = async (chainId: string, chainName: string, rpcUrl: string): Promise<void> => {
-	const adena = getAdena();
+  const adena = getAdena();
 
-	const response = await adena.AddNetwork({ chainId, chainName, rpcUrl });
+  const response = await adena.AddNetwork({ chainId, chainName, rpcUrl });
 
-	if (response.status === EAdenaResponseStatus.SUCCESS) {
-		return;
-	}
+  if (response.status === EAdenaResponseStatus.SUCCESS) {
+    return;
+  }
 
-	throw new Error(`Unable to add network ${response.message}`);
+  throw new Error(`Unable to add network ${response.message}`);
 };

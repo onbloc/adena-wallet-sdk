@@ -1,8 +1,8 @@
-import { BroadcastTxCommitResult } from "@gnolang/tm2-js-client";
+import { BroadcastTxCommitResult } from '@gnolang/tm2-js-client';
 
-import { getAdena } from "../utils";
-import { EAdenaResponseStatus } from "../types/common";
-import { ContractMessage } from "../types/methods/transactions";
+import { getAdena } from '../utils';
+import { EAdenaResponseStatus } from '../types/common';
+import { ContractMessage } from '../types/methods/transactions';
 
 const DEFAULT_GAS_FEE = 1000000;
 const DEFAULT_GAS_LIMIT = 5000000;
@@ -17,26 +17,26 @@ const DEFAULT_GAS_LIMIT = 5000000;
  * @returns {BroadcastTxCommitResult} Result of the broadcast transaction
  */
 export const signAndSendTransaction = async (
-	messages: ContractMessage[],
-	gasFee: number = DEFAULT_GAS_FEE,
-	gasWanted: number = DEFAULT_GAS_LIMIT,
-	memo?: string,
+  messages: ContractMessage[],
+  gasFee: number = DEFAULT_GAS_FEE,
+  gasWanted: number = DEFAULT_GAS_LIMIT,
+  memo?: string
 ): Promise<BroadcastTxCommitResult> => {
-	const adena = getAdena();
+  const adena = getAdena();
 
-	// Sign and send the transaction
-	const response = await adena.DoContract({
-		messages,
-		gasFee,
-		gasWanted,
-		memo,
-	});
+  // Sign and send the transaction
+  const response = await adena.DoContract({
+    messages,
+    gasFee,
+    gasWanted,
+    memo,
+  });
 
-	if (response.status !== EAdenaResponseStatus.SUCCESS) {
-		throw new Error(`Unable to send transaction: ${response.message}`);
-	}
+  if (response.status !== EAdenaResponseStatus.SUCCESS) {
+    throw new Error(`Unable to send transaction: ${response.message}`);
+  }
 
-	return response.data;
+  return response.data;
 };
 
 /**
@@ -49,24 +49,24 @@ export const signAndSendTransaction = async (
  * @returns {string} Encoded transaction
  */
 export const signTransaction = async (
-	messages: ContractMessage[],
-	gasFee: number = DEFAULT_GAS_FEE,
-	gasWanted: number = DEFAULT_GAS_LIMIT,
-	memo?: string,
+  messages: ContractMessage[],
+  gasFee: number = DEFAULT_GAS_FEE,
+  gasWanted: number = DEFAULT_GAS_LIMIT,
+  memo?: string
 ): Promise<string> => {
-	const adena = getAdena();
+  const adena = getAdena();
 
-	// Sign the transaction
-	const response = await adena.SignTx({
-		messages,
-		gasFee,
-		gasWanted,
-		memo,
-	});
+  // Sign the transaction
+  const response = await adena.SignTx({
+    messages,
+    gasFee,
+    gasWanted,
+    memo,
+  });
 
-	if (response.status !== EAdenaResponseStatus.SUCCESS) {
-		throw new Error(`Unable to sign transaction ${response.message}`);
-	}
+  if (response.status !== EAdenaResponseStatus.SUCCESS) {
+    throw new Error(`Unable to sign transaction ${response.message}`);
+  }
 
-	return response.data.encodedTransaction;
+  return response.data.encodedTransaction;
 };

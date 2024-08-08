@@ -1,5 +1,5 @@
-import { OnAccountChangeFunc, OnEventType, OnNetworkChangeFunc } from "../types/methods/events";
-import { getAdena } from "../utils";
+import { OnAccountChangeFunc, OnEventType, OnNetworkChangeFunc } from '../types/methods/events';
+import { getAdena } from '../utils';
 
 /**
  * Add a listener on connected account changes
@@ -8,9 +8,9 @@ import { getAdena } from "../utils";
  * @returns Nothing, throws an error if it fails
  */
 export const onAccountChange = async (func: OnAccountChangeFunc): Promise<void> => {
-	const adena = getAdena();
+  const adena = getAdena();
 
-	adena.On(OnEventType.CHANGED_ACCOUNT, func);
+  adena.On(OnEventType.CHANGED_ACCOUNT, func);
 };
 
 /**
@@ -20,7 +20,7 @@ export const onAccountChange = async (func: OnAccountChangeFunc): Promise<void> 
  * @returns Nothing, throws an error if it fails
  */
 export const onNetworkChange = async (func: OnNetworkChangeFunc): Promise<void> => {
-	const adena = getAdena();
+  const adena = getAdena();
 
-	adena.On(OnEventType.CHANGED_NETWORK, func);
+  adena.On(OnEventType.CHANGED_NETWORK, func);
 };
