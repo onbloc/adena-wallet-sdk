@@ -5,7 +5,7 @@ export enum AddEstablishResponseType {
 	ALREADY_CONNECTED = "ALREADY_CONNECTED",
 }
 
-export type AddEstablishResponse = IAdenaResponse<AddEstablishResponseType, {}>;
+export type AddEstablishResponse = IAdenaResponse<AddEstablishResponseType, Record<string, never>>;
 
 export type AdenaAddEstablish = (name: string) => Promise<AddEstablishResponse>;
 
