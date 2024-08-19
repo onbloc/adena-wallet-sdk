@@ -9,6 +9,16 @@ export type AddEstablishResponse = IAdenaResponse<AddEstablishResponseType, Reco
 
 export type AdenaAddEstablish = (name: string) => Promise<AddEstablishResponse>;
 
+export enum CheckConnectionResponseType {
+  WALLET_LOCKED = 'WALLET_LOCKED',
+  NOT_CONNECTED = 'NOT_CONNECTED',
+  ALREADY_CONNECTED = 'ALREADY_CONNECTED',
+}
+
+export type CheckConnectionResponse = IAdenaResponse<CheckConnectionResponseType, Record<string, never>>;
+
+export type AdenaCheckConnection = (name: string) => Promise<CheckConnectionResponse>;
+
 enum GetAccountResponseType {
   GET_ACCOUNT = 'GET_ACCOUNT',
   NO_ACCOUNT = 'NO_ACCOUNT',

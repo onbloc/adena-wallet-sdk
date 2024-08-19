@@ -1,11 +1,12 @@
-import { AdenaDoContract, AdenaSignTx } from './methods/transactions';
-import { AdenaAddNetwork, AdenaSwitchNetwork } from './methods/network';
-import { AdenaAddEstablish, AdenaGetAccount } from './methods/general';
 import { AdenaOnEvent } from './methods/events';
+import { AdenaAddEstablish, AdenaCheckConnection, AdenaGetAccount } from './methods/general';
+import { AdenaAddNetwork, AdenaSwitchNetwork } from './methods/network';
+import { AdenaDoContract, AdenaSignTx } from './methods/transactions';
 
 export type AdenaWallet = {
   // General
   AddEstablish: AdenaAddEstablish;
+  CheckConnection: AdenaCheckConnection;
   GetAccount: AdenaGetAccount;
 
   // Network

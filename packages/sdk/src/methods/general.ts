@@ -1,6 +1,11 @@
 import { EAdenaResponseStatus } from '../types/common';
 import { getAdena } from '../utils';
-import { AddEstablishResponse, AddEstablishResponseType, GetAccountResponseData } from '../types/methods/general';
+import {
+  AddEstablishResponse,
+  AddEstablishResponseType,
+  CheckConnectionResponse,
+  GetAccountResponseData,
+} from '../types/methods/general';
 
 /**
  * Establish a connection to your site from Adena
@@ -26,6 +31,18 @@ export const establishConnection = async (name: string): Promise<AddEstablishRes
   }
 
   throw new Error(`Unable to establish connection: ${response.message}`);
+};
+
+/**
+ * Check if the status of the connection between your site and Adena
+ * @async
+ * @param {string} name - The name of the website
+ * @returns Original Adena response with the type of connection
+ */
+export const checkConnection = async (name: string): Promise<CheckConnectionResponse> => {
+  const adena = getAdena();
+
+  return await adena.CheckConnection(name);
 };
 
 /**
