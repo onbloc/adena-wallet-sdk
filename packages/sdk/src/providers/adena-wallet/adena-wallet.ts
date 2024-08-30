@@ -1,6 +1,6 @@
 import {
   WalletProvider,
-  Response,
+  WalletResponse,
   TransactionData,
   BroadcastType,
   TransactionResult,
@@ -27,18 +27,18 @@ export class AdenaWalletProvider implements WalletProvider {
     return adena;
   }
 
-  isConnected(): Promise<Response<void>> {
+  isConnected(): Promise<WalletResponse<void>> {
     throw new Error('not implements');
   }
 
-  async addEstablish(name: string): Promise<Response<void>> {
+  async addEstablish(name: string): Promise<WalletResponse<void>> {
     const adena = this.getAdena();
     const response = await adena.AddEstablish(name);
 
     return mapResponseByAdenaResponse(response);
   }
 
-  async getAccount(): Promise<Response<AccountInfo>> {
+  async getAccount(): Promise<WalletResponse<AccountInfo>> {
     const adena = this.getAdena();
     const response = await adena.GetAccount();
     const accountInfo: AccountInfo = response.data;
@@ -46,21 +46,21 @@ export class AdenaWalletProvider implements WalletProvider {
     return mapResponseByAdenaResponse<AccountInfo>(response, accountInfo);
   }
 
-  async switchNetwork(chainId: string): Promise<Response<void>> {
+  async switchNetwork(chainId: string): Promise<WalletResponse<void>> {
     const adena = this.getAdena();
     const response = await adena.SwitchNetwork(chainId);
 
     return mapResponseByAdenaResponse(response);
   }
 
-  async addNetwork(chainId: string, chainName: string, rpcUrl: string): Promise<Response<void>> {
+  async addNetwork(chainId: string, chainName: string, rpcUrl: string): Promise<WalletResponse<void>> {
     const adena = this.getAdena();
     const response = await adena.AddNetwork({ chainId, chainName, rpcUrl });
 
     return mapResponseByAdenaResponse(response);
   }
 
-  async signTransaction(transactionData: TransactionData): Promise<Response<SingTransaction>> {
+  async signTransaction(transactionData: TransactionData): Promise<WalletResponse<SingTransaction>> {
     const adena = this.getAdena();
     const response = await adena.SignTx(transactionData);
 
@@ -71,7 +71,7 @@ export class AdenaWalletProvider implements WalletProvider {
     transactionData: TransactionData,
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     broadcastType: BroadcastType = BroadcastType.SYNC
-  ): Promise<Response<TransactionResult | TransactionResultSync | TransactionResultCommit>> {
+  ): Promise<WalletResponse<TransactionResult | TransactionResultSync | TransactionResultCommit>> {
     const adena = this.getAdena();
     const response = await adena.DoContract(transactionData);
     const transactionResult = response.data;

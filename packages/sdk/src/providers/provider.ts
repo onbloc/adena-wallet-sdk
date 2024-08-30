@@ -1,5 +1,4 @@
 import {
-  Response,
   AccountInfo,
   BroadcastType,
   TransactionData,
@@ -7,10 +6,11 @@ import {
   TransactionResultCommit,
   TransactionResultSync,
   SingTransaction,
-} from './types';
+  WalletResponse,
+} from '../types';
 
 export interface WalletProvider {
-  isConnected: () => Promise<Response<void>>;
+  isConnected: () => Promise<WalletResponse<void>>;
 
   /**
    * Establish a connection to your site from Adena
@@ -18,14 +18,14 @@ export interface WalletProvider {
    * @param {string} name - The name of the website requesting to connect
    * @returns Original Adena response, useful to check if the site was already connected
    */
-  addEstablish: (name: string) => Promise<Response<void>>;
+  addEstablish: (name: string) => Promise<WalletResponse<void>>;
 
   /**
    * Fetch information about the current connected account
    * @async
    * @returns Original Adena response with the account information
    */
-  getAccount: () => Promise<Response<AccountInfo>>;
+  getAccount: () => Promise<WalletResponse<AccountInfo>>;
 
   /**
    * Switches the Adena network to the given chain ID
@@ -33,7 +33,7 @@ export interface WalletProvider {
    * @param {string} chainId - Chain ID
    * @returns Nothing, throws an error if it fails
    */
-  switchNetwork: (chainId: string) => Promise<Response<void>>;
+  switchNetwork: (chainId: string) => Promise<WalletResponse<void>>;
 
   /**
    * Add a custom network to Adena
@@ -43,7 +43,7 @@ export interface WalletProvider {
    * @param {string} rpcUrl - Network RPC URL
    * @returns Nothing, throws an error if it fails
    */
-  addNetwork: (chainId: string, chainName: string, rpcUrl: string) => Promise<Response<void>>;
+  addNetwork: (chainId: string, chainName: string, rpcUrl: string) => Promise<WalletResponse<void>>;
 
   /**
    * Sign a transaction crafted by a web-app
@@ -54,7 +54,7 @@ export interface WalletProvider {
    * @param {string} memo - Transaction memo (tag)
    * @returns {string} Encoded transaction
    */
-  signTransaction: (transactionData: TransactionData) => Promise<Response<SingTransaction>>;
+  signTransaction: (transactionData: TransactionData) => Promise<WalletResponse<SingTransaction>>;
 
   /**
    * Sign and broadcast a transaction crafted by a web-app
@@ -68,7 +68,7 @@ export interface WalletProvider {
   broadcastTransaction: (
     transactionData: TransactionData,
     broadcastType?: BroadcastType
-  ) => Promise<Response<TransactionResult | TransactionResultSync | TransactionResultCommit>>;
+  ) => Promise<WalletResponse<TransactionResult | TransactionResultSync | TransactionResultCommit>>;
 
   /**
    * Add a listener on connected account changes

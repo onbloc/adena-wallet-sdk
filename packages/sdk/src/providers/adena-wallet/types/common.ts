@@ -1,8 +1,8 @@
-export type TAdenaResponseStatus = 'success' | 'failure';
+export type AdenaResponseStatus = 'success' | 'failure';
 
-export interface IAdenaResponse<T, D> {
+export interface AdenaResponse<T, D> {
   code: number;
-  status: TAdenaResponseStatus;
+  status: AdenaResponseStatus;
   type: T;
   message: string;
   data: D;

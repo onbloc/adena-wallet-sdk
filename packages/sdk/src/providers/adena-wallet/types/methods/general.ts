@@ -1,11 +1,11 @@
-import { IAdenaResponse } from '../common';
+import { AdenaResponse } from '../common';
 
 export enum AddEstablishResponseType {
   CONNECTION_SUCCESS = 'CONNECTION_SUCCESS',
   ALREADY_CONNECTED = 'ALREADY_CONNECTED',
 }
 
-export type AddEstablishResponse = IAdenaResponse<AddEstablishResponseType, Record<string, never>>;
+export type AddEstablishResponse = AdenaResponse<AddEstablishResponseType, Record<string, never>>;
 
 export type AdenaAddEstablish = (name: string) => Promise<AddEstablishResponse>;
 
@@ -33,6 +33,6 @@ export type GetAccountResponseData = {
   };
 };
 
-type GetAccountResponse = IAdenaResponse<GetAccountResponseType, GetAccountResponseData>;
+type GetAccountResponse = AdenaResponse<GetAccountResponseType, GetAccountResponseData>;
 
 export type AdenaGetAccount = () => Promise<GetAccountResponse>;

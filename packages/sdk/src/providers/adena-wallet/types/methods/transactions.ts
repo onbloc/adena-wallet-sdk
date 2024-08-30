@@ -2,7 +2,7 @@ import { MsgAddPackage, MsgCall, MsgSend } from '@gnolang/gno-js-client';
 import { MsgRun } from '@gnolang/gno-js-client/bin/proto/gno/vm';
 import { BroadcastTxCommitResult } from '@gnolang/tm2-js-client';
 
-import { IAdenaResponse } from '../common';
+import { AdenaResponse } from '../common';
 
 type EMessageType = '/bank.MsgSend' | '/vm.m_call' | '/vm.m_addpkg' | '/vm.m_run';
 
@@ -25,7 +25,7 @@ enum DoContractResponseType {
 }
 
 // TODO: BroadcastTxCommitResult isn't correct in case of a VM call
-type DoContractResponse = IAdenaResponse<DoContractResponseType, BroadcastTxCommitResult>;
+type DoContractResponse = AdenaResponse<DoContractResponseType, BroadcastTxCommitResult>;
 
 export type AdenaDoContract = (params: TransactionParams) => Promise<DoContractResponse>;
 
@@ -37,6 +37,6 @@ type SignTxResponseData = {
   encodedTransaction: string;
 };
 
-type SignTxResponse = IAdenaResponse<SignTxResponseType, SignTxResponseData>;
+type SignTxResponse = AdenaResponse<SignTxResponseType, SignTxResponseData>;
 
 export type AdenaSignTx = (params: TransactionParams) => Promise<SignTxResponse>;
