@@ -1,16 +1,23 @@
 import {
-  AccountInfo,
-  BroadcastType,
-  SingTransaction,
-  TransactionData,
-  TransactionResult,
-  TransactionResultCommit,
-  TransactionResultSync,
-  WalletResponse,
-} from '../../core/types';
+  AddEstablishOptions,
+  AddEstablishResponse,
+  AddNetworkOptions,
+  AddNetworkResponse,
+  BroadcastTransactionOptions,
+  BroadcastTransactionResponse,
+  GetAccountResponse,
+  IsConnectedResponse,
+  OnChangeAccountOptions,
+  OnChangeAccountResponse,
+  OnChangeNetworkOptions,
+  OnChangeNetworkResponse,
+  SwitchNetworkOptions,
+  SwitchNetworkResponse,
+} from '../types/methods';
+import { SignTransactionOptions, SignTransactionResponse } from '../types/methods/sign-transaction.types';
 
 export interface WalletProvider {
-  isConnected: () => Promise<WalletResponse<void>>;
+  isConnected: () => Promise<IsConnectedResponse>;
 
   /**
    * Establish a connection to your site from Adena
@@ -18,14 +25,14 @@ export interface WalletProvider {
    * @param {string} name - The name of the website requesting to connect
    * @returns Original Adena response, useful to check if the site was already connected
    */
-  addEstablish: (name: string) => Promise<WalletResponse<void>>;
+  addEstablish: (options: AddEstablishOptions) => Promise<AddEstablishResponse>;
 
   /**
    * Fetch information about the current connected account
    * @async
    * @returns Original Adena response with the account information
    */
-  getAccount: () => Promise<WalletResponse<AccountInfo>>;
+  getAccount: () => Promise<GetAccountResponse>;
 
   /**
    * Switches the Adena network to the given chain ID
@@ -33,7 +40,7 @@ export interface WalletProvider {
    * @param {string} chainId - Chain ID
    * @returns Nothing, throws an error if it fails
    */
-  switchNetwork: (chainId: string) => Promise<WalletResponse<void>>;
+  switchNetwork: (options: SwitchNetworkOptions) => Promise<SwitchNetworkResponse>;
 
   /**
    * Add a custom network to Adena
@@ -43,7 +50,7 @@ export interface WalletProvider {
    * @param {string} rpcUrl - Network RPC URL
    * @returns Nothing, throws an error if it fails
    */
-  addNetwork: (chainId: string, chainName: string, rpcUrl: string) => Promise<WalletResponse<void>>;
+  addNetwork: (options: AddNetworkOptions) => Promise<AddNetworkResponse>;
 
   /**
    * Sign a transaction crafted by a web-app
@@ -54,7 +61,7 @@ export interface WalletProvider {
    * @param {string} memo - Transaction memo (tag)
    * @returns {string} Encoded transaction
    */
-  signTransaction: (transactionData: TransactionData) => Promise<WalletResponse<SingTransaction>>;
+  signTransaction: (options: SignTransactionOptions) => Promise<SignTransactionResponse>;
 
   /**
    * Sign and broadcast a transaction crafted by a web-app
@@ -65,10 +72,7 @@ export interface WalletProvider {
    * @param {string} memo - Transaction memo (tag)
    * @returns {BroadcastTxCommitResult} Result of the broadcast transaction
    */
-  broadcastTransaction: (
-    transactionData: TransactionData,
-    broadcastType?: BroadcastType
-  ) => Promise<WalletResponse<TransactionResult | TransactionResultSync | TransactionResultCommit>>;
+  broadcastTransaction: (options: BroadcastTransactionOptions) => Promise<BroadcastTransactionResponse>;
 
   /**
    * Add a listener on connected account changes
@@ -76,7 +80,7 @@ export interface WalletProvider {
    * @param {OnAccountChangeFunc} func - Function to call on a new event
    * @returns Nothing, throws an error if it fails
    */
-  onChangeAccount: (callback: (address: string) => void) => void;
+  onChangeAccount: (options: OnChangeAccountOptions) => Promise<OnChangeAccountResponse>;
 
   /**
    * Add a listener on network changes
@@ -84,5 +88,5 @@ export interface WalletProvider {
    * @param {OnNetworkChangeFunc} func - Function to call on a new event
    * @returns Nothing, throws an error if it fails
    */
-  onChangeNetwork: (callback: (chainId: string) => void) => void;
+  onChangeNetwork: (options: OnChangeNetworkOptions) => Promise<OnChangeNetworkResponse>;
 }
