@@ -5,8 +5,8 @@ import {
   WalletResponseSuccessType,
   WalletResponseType,
   WalletResponseRejectedType,
-} from '../../types';
-import { AdenaResponse, AdenaResponseStatus } from '../adena-wallet';
+} from '../../core/types';
+import { AdenaResponse, AdenaResponseStatus } from './types';
 
 export function isSuccessType(type: WalletResponseType | string): type is WalletResponseSuccessType {
   return Object.values(WalletResponseSuccessType).includes(type as WalletResponseSuccessType);

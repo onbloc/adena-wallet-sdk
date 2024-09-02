@@ -1,11 +1,11 @@
 import {
   AccountInfo,
   BroadcastType,
+  SingTransaction,
   TransactionData,
   TransactionResult,
   TransactionResultCommit,
   TransactionResultSync,
-  SingTransaction,
   WalletResponse,
 } from '../types';
 

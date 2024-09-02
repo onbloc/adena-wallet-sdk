@@ -1,4 +1,4 @@
-import { AdenaResponse } from '../common';
+import { AdenaResponse } from '.';
 
 type AddNetworkParams = {
   chainId: string;

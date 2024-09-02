@@ -1,4 +1,4 @@
-import { AdenaResponse } from '../common';
+import { AdenaResponse } from '.';
 
 export enum AddEstablishResponseType {
   CONNECTION_SUCCESS = 'CONNECTION_SUCCESS',

@@ -1,16 +1,16 @@
 import {
-  WalletProvider,
-  WalletResponse,
-  TransactionData,
-  BroadcastType,
-  TransactionResult,
-  TransactionResultSync,
-  TransactionResultCommit,
   AccountInfo,
+  BroadcastType,
   SingTransaction,
-} from '..';
+  TransactionData,
+  TransactionResult,
+  TransactionResultCommit,
+  TransactionResultSync,
+  WalletResponse,
+} from '../../core/types';
+import { WalletProvider } from '../../core/providers';
+import { mapResponseByAdenaResponse } from './mapper.utils';
 import { AdenaWallet } from './types';
-import { mapResponseByAdenaResponse } from '../utilities';
 
 export class AdenaWalletProvider implements WalletProvider {
   private getAdena(): AdenaWallet {

@@ -1,4 +1,4 @@
-import { AdenaWallet } from './adena';
+import { AdenaWallet } from '.';
 
 declare global {
   interface Window {
