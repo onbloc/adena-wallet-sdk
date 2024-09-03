@@ -1,4 +1,4 @@
-import { ConnectionManager } from '../connection';
+import { ConnectionManager, ConnectionState } from '../connection';
 import {
   addEstablish,
   addNetwork,
@@ -29,6 +29,8 @@ import {
   SwitchNetworkOptions,
   SwitchNetworkResponse,
 } from '../types/methods';
+import { OffConnectionChangeOptions, OffConnectionChangeResponse } from '../types/methods/off-connection-change';
+import { OnConnectionChangeOptions, OnConnectionChangeResponse } from '../types/methods/on-connection-change';
 
 export class AdenaSDK {
   private connectionManager: ConnectionManager;
@@ -38,15 +40,23 @@ export class AdenaSDK {
   }
 
   async connectWallet(): Promise<void> {
-    return this.connectionManager.connect();
+    return this.connectionManager.connectWallet();
   }
 
   disconnectWallet(): void {
-    this.connectionManager.disconnect();
+    this.connectionManager.disconnectWallet();
   }
 
-  getConnectionState() {
+  getConnectionState(): ConnectionState {
     return this.connectionManager.getConnectionState();
+  }
+
+  onConnectionChange(options: OnConnectionChangeOptions): OnConnectionChangeResponse {
+    return this.connectionManager.on(options.callback);
+  }
+
+  offConnectionChange(options: OffConnectionChangeOptions): OffConnectionChangeResponse {
+    return this.connectionManager.off(options.callback);
   }
 
   isConnected(): Promise<IsConnectedResponse> {

@@ -3,7 +3,7 @@ export interface WalletState {
   connected: boolean;
 }
 
-export type WalletEvent = 'connect' | 'disconnect';
+export type WalletConnectionEvent = 'connect' | 'disconnect';
 
 export type WalletListener = (state: WalletState) => void;
 
