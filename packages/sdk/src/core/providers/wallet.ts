@@ -80,7 +80,7 @@ export interface WalletProvider {
    * @param {OnAccountChangeFunc} func - Function to call on a new event
    * @returns Nothing, throws an error if it fails
    */
-  onChangeAccount: (options: OnChangeAccountOptions) => Promise<OnChangeAccountResponse>;
+  onChangeAccount: (options: OnChangeAccountOptions) => OnChangeAccountResponse;
 
   /**
    * Add a listener on network changes
@@ -88,5 +88,5 @@ export interface WalletProvider {
    * @param {OnNetworkChangeFunc} func - Function to call on a new event
    * @returns Nothing, throws an error if it fails
    */
-  onChangeNetwork: (options: OnChangeNetworkOptions) => Promise<OnChangeNetworkResponse>;
+  onChangeNetwork: (options: OnChangeNetworkOptions) => OnChangeNetworkResponse;
 }

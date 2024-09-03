@@ -13,11 +13,15 @@ export class ConnectionManager {
     this.stateManager.setState(ConnectionState.CONNECTING);
     try {
       const connected = await this.provider.isConnected();
-      if (!connected) {
-        const response = await this.provider.addEstablish({});
-        if (!isSuccessType(response.status)) {
-          throw new Error(response.message);
-        }
+      if (connected) {
+        this.stateManager.setState(ConnectionState.CONNECTED);
+        return;
+      }
+
+      const addEstablishResponse = await this.provider.addEstablish({});
+      if (!isSuccessType(addEstablishResponse.status)) {
+        this.stateManager.setState(ConnectionState.ERROR);
+        throw new Error(addEstablishResponse.message);
       }
 
       this.stateManager.setState(ConnectionState.CONNECTED);
@@ -33,5 +37,12 @@ export class ConnectionManager {
 
   getConnectionState(): ConnectionState {
     return this.stateManager.getState();
+  }
+
+  getWalletProvider(): WalletProvider {
+    if (this.stateManager.getState() !== ConnectionState.CONNECTED) {
+      throw new Error('not connect wallet');
+    }
+    return this.provider;
   }
 }

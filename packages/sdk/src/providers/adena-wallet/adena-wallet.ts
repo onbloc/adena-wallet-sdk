@@ -1,14 +1,23 @@
-import {
-  AccountInfo,
-  BroadcastType,
-  SingTransaction,
-  TransactionData,
-  TransactionResult,
-  TransactionResultCommit,
-  TransactionResultSync,
-  WalletResponse,
-} from '../../core/types';
 import { WalletProvider } from '../../core/providers';
+import { AccountInfo } from '../../core/types';
+import {
+  AddEstablishOptions,
+  AddEstablishResponse,
+  AddNetworkOptions,
+  AddNetworkResponse,
+  BroadcastTransactionOptions,
+  BroadcastTransactionResponse,
+  GetAccountResponse,
+  IsConnectedResponse,
+  OnChangeAccountOptions,
+  OnChangeAccountResponse,
+  OnChangeNetworkOptions,
+  OnChangeNetworkResponse,
+  SignTransactionOptions,
+  SignTransactionResponse,
+  SwitchNetworkOptions,
+  SwitchNetworkResponse,
+} from '../../core/types/methods';
 import { mapResponseByAdenaResponse } from './mapper.utils';
 import { AdenaWallet } from './types';
 
@@ -27,18 +36,20 @@ export class AdenaWalletProvider implements WalletProvider {
     return adena;
   }
 
-  isConnected(): Promise<WalletResponse<void>> {
+  isConnected(): Promise<IsConnectedResponse> {
     throw new Error('not implements');
   }
 
-  async addEstablish(name: string): Promise<WalletResponse<void>> {
+  async addEstablish(options: AddEstablishOptions): Promise<AddEstablishResponse> {
     const adena = this.getAdena();
+    const name = options.siteName || '';
     const response = await adena.AddEstablish(name);
+    const succeed = response.code === 0;
 
-    return mapResponseByAdenaResponse(response);
+    return mapResponseByAdenaResponse<boolean>(response, succeed);
   }
 
-  async getAccount(): Promise<WalletResponse<AccountInfo>> {
+  async getAccount(): Promise<GetAccountResponse> {
     const adena = this.getAdena();
     const response = await adena.GetAccount();
     const accountInfo: AccountInfo = response.data;
@@ -46,46 +57,42 @@ export class AdenaWalletProvider implements WalletProvider {
     return mapResponseByAdenaResponse<AccountInfo>(response, accountInfo);
   }
 
-  async switchNetwork(chainId: string): Promise<WalletResponse<void>> {
+  async switchNetwork(options: SwitchNetworkOptions): Promise<SwitchNetworkResponse> {
     const adena = this.getAdena();
-    const response = await adena.SwitchNetwork(chainId);
+    const response = await adena.SwitchNetwork(options.chainId);
 
     return mapResponseByAdenaResponse(response);
   }
 
-  async addNetwork(chainId: string, chainName: string, rpcUrl: string): Promise<WalletResponse<void>> {
+  async addNetwork(options: AddNetworkOptions): Promise<AddNetworkResponse> {
     const adena = this.getAdena();
-    const response = await adena.AddNetwork({ chainId, chainName, rpcUrl });
+    const response = await adena.AddNetwork(options);
 
     return mapResponseByAdenaResponse(response);
   }
 
-  async signTransaction(transactionData: TransactionData): Promise<WalletResponse<SingTransaction>> {
+  async signTransaction(options: SignTransactionOptions): Promise<SignTransactionResponse> {
     const adena = this.getAdena();
-    const response = await adena.SignTx(transactionData);
+    const response = await adena.SignTx(options.transactionData);
 
     return mapResponseByAdenaResponse(response, response.data);
   }
 
-  async broadcastTransaction(
-    transactionData: TransactionData,
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    broadcastType: BroadcastType = BroadcastType.SYNC
-  ): Promise<WalletResponse<TransactionResult | TransactionResultSync | TransactionResultCommit>> {
+  async broadcastTransaction(options: BroadcastTransactionOptions): Promise<BroadcastTransactionResponse> {
     const adena = this.getAdena();
-    const response = await adena.DoContract(transactionData);
+    const response = await adena.DoContract(options.transactionData);
     const transactionResult = response.data;
 
     return mapResponseByAdenaResponse(response, transactionResult);
   }
 
-  onChangeAccount(callback: (address: string) => void): void {
+  onChangeAccount(options: OnChangeAccountOptions): OnChangeAccountResponse {
     const adena = this.getAdena();
-    adena.On('changedAccount', callback);
+    adena.On('changedAccount', options.callback);
   }
 
-  onChangeNetwork(callback: (chainId: string) => void): void {
+  onChangeNetwork(options: OnChangeNetworkOptions): OnChangeNetworkResponse {
     const adena = this.getAdena();
-    adena.On('changedNetwork', callback);
+    adena.On('changedNetwork', options.callback);
   }
 }
