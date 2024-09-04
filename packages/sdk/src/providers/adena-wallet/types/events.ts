@@ -1,10 +1,7 @@
 export type OnAccountChangeFunc = (address: string) => void;
 export type OnNetworkChangeFunc = (network: string) => void;
 
-export enum OnEventType {
-  CHANGED_ACCOUNT = 'changedAccount',
-  CHANGED_NETWORK = 'changedNetwork',
-}
+type OnEventType = 'changedAccount' | 'changedNetwork';
 
 type OnEventFunc = OnAccountChangeFunc | OnNetworkChangeFunc;
 

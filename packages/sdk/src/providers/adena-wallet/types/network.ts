@@ -1,4 +1,4 @@
-import { IAdenaResponse } from '../common';
+import { AdenaResponse } from '.';
 
 type AddNetworkParams = {
   chainId: string;
@@ -10,7 +10,7 @@ enum AddNetworkResponseType {
   ADD_NETWORK_SUCCESS = 'ADD_NETWORK_SUCCESS',
 }
 
-type AddNetworkResponse = IAdenaResponse<AddNetworkResponseType, AddNetworkParams>;
+type AddNetworkResponse = AdenaResponse<AddNetworkResponseType, AddNetworkParams>;
 
 export type AdenaAddNetwork = (network: AddNetworkParams) => Promise<AddNetworkResponse>;
 
@@ -24,6 +24,6 @@ type SwitchNetworkResponseData = {
   chainId: string;
 };
 
-type SwitchNetworkResponse = IAdenaResponse<SwitchNetworkResponseType, SwitchNetworkResponseData>;
+type SwitchNetworkResponse = AdenaResponse<SwitchNetworkResponseType, SwitchNetworkResponseData>;
 
 export type AdenaSwitchNetwork = (chainId: string) => Promise<SwitchNetworkResponse>;
