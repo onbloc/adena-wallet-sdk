@@ -1,4 +1,3 @@
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export function setSessionStorageItem(key: string, value: string): void {
   sessionStorage.setItem(key, value);
 }
