@@ -1,0 +1,15 @@
+{
+  "projects": ["<rootDir>/packages/*"],
+  "watchPathIgnorePatterns": ["<rootDir>/node_modules/", "<rootDir>/bin/"],
+  "testPathIgnorePatterns": [
+    "<rootDir>/node_modules/",
+    "<rootDir>/bin/",
+    "<rootDir>/**/node_modules/",
+    "<rootDir>/**/bin/",
+    "<rootDir>/**/__mocks__/",
+    "<rootDir>/**/coverage/"
+  ],
+  "transform": {
+    "^.+\\.(ts|tsx)$": "ts-jest"
+  }
+}
