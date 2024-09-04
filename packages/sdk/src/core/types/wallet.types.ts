@@ -1,3 +1,12 @@
+export interface WalletState {
+  address: string | null;
+  connected: boolean;
+}
+
+export type WalletConnectionEvent = 'connect' | 'disconnect';
+
+export type WalletListener = (state: WalletState) => void;
+
 export interface WalletResponse<D> {
   code: number;
   status: WalletResponseStatus;
