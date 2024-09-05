@@ -1,5 +1,7 @@
+import { Tx } from '@gnolang/tm2-js-client';
+import { makeResponseMessage } from '../../core';
 import { WalletProvider } from '../../core/providers';
-import { AccountInfo } from '../../core/types';
+import { AccountInfo, WalletResponseFailureType, WalletResponseSuccessType } from '../../core/types';
 import {
   AddEstablishOptions,
   AddEstablishResponse,
@@ -18,8 +20,8 @@ import {
   SwitchNetworkOptions,
   SwitchNetworkResponse,
 } from '../../core/types/methods';
-import { mapResponseByAdenaResponse } from './mapper.utils';
-import { AdenaWallet } from './types';
+import { isSuccessType, mapResponseByAdenaResponse } from './mapper.utils';
+import { AdenaWallet, TransactionParams } from './types';
 
 export class AdenaWalletProvider implements WalletProvider {
   private getAdena(): AdenaWallet {
@@ -36,23 +38,29 @@ export class AdenaWalletProvider implements WalletProvider {
     return adena;
   }
 
-  isConnected(): Promise<IsConnectedResponse> {
-    throw new Error('not implements');
+  async isConnected(): Promise<IsConnectedResponse> {
+    return makeResponseMessage<boolean>(WalletResponseFailureType.UNSUPPORTED_TYPE, false);
   }
 
   async addEstablish(options: AddEstablishOptions): Promise<AddEstablishResponse> {
     const adena = this.getAdena();
     const name = options.siteName || '';
     const response = await adena.AddEstablish(name);
-    const succeed = response.code === 0;
+    const succeed =
+      isSuccessType(response.type) || response.type === WalletResponseFailureType.ALREADY_CONNECTED.toString();
 
-    return mapResponseByAdenaResponse<boolean>(response, succeed);
+    if (succeed) {
+      return makeResponseMessage<boolean>(WalletResponseSuccessType.CONNECTION_SUCCESS, succeed);
+    }
+    return mapResponseByAdenaResponse(response, false);
   }
 
   async getAccount(): Promise<GetAccountResponse> {
     const adena = this.getAdena();
     const response = await adena.GetAccount();
-    const accountInfo: AccountInfo = response.data;
+    const accountInfo: AccountInfo = {
+      ...response.data,
+    };
 
     return mapResponseByAdenaResponse<AccountInfo>(response, accountInfo);
   }
@@ -73,14 +81,14 @@ export class AdenaWalletProvider implements WalletProvider {
 
   async signTransaction(options: SignTransactionOptions): Promise<SignTransactionResponse> {
     const adena = this.getAdena();
-    const response = await adena.SignTx(options.transactionData);
+    const response = await adena.SignTx(Tx.toJSON(options.tx) as TransactionParams);
 
     return mapResponseByAdenaResponse(response, response.data);
   }
 
   async broadcastTransaction(options: BroadcastTransactionOptions): Promise<BroadcastTransactionResponse> {
     const adena = this.getAdena();
-    const response = await adena.DoContract(options.transactionData);
+    const response = await adena.DoContract(Tx.toJSON(options.tx) as TransactionParams);
     const transactionResult = response.data;
 
     return mapResponseByAdenaResponse(response, transactionResult);

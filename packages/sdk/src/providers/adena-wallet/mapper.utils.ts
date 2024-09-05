@@ -1,7 +1,7 @@
 import {
   WalletResponse,
-  WalletResponseFailedType,
-  WalletResponseRejectedType,
+  WalletResponseFailureType,
+  WalletResponseRejectType,
   WalletResponseStatus,
   WalletResponseSuccessType,
   WalletResponseType,
@@ -13,14 +13,14 @@ export function isSuccessType(type: WalletResponseType | string): type is Wallet
   return !!Object.values(WalletResponseSuccessType).find((value) => value === typeValue);
 }
 
-export function isFailedType(type: WalletResponseType | string): type is WalletResponseFailedType {
+export function isFailedType(type: WalletResponseType | string): type is WalletResponseFailureType {
   const typeValue = type.toString();
-  return !!Object.values(WalletResponseFailedType).find((value) => value === typeValue);
+  return !!Object.values(WalletResponseFailureType).find((value) => value === typeValue);
 }
 
-export function isRejectType(type: WalletResponseType | string): type is WalletResponseRejectedType {
+export function isRejectType(type: WalletResponseType | string): type is WalletResponseRejectType {
   const typeValue = type.toString();
-  return !!Object.values(WalletResponseRejectedType).find((value) => value === typeValue);
+  return !!Object.values(WalletResponseRejectType).find((value) => value === typeValue);
 }
 
 function mapResponseStatus(status: AdenaResponseStatus): WalletResponseStatus {
