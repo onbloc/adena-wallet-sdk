@@ -32,6 +32,7 @@ import {
 } from '../types/methods';
 import { OffConnectionChangeOptions, OffConnectionChangeResponse } from '../types/methods/off-connection-change';
 import { OnConnectionChangeOptions, OnConnectionChangeResponse } from '../types/methods/on-connection-change';
+import { isTM2WalletProvider } from '../utils/provider.utils';
 
 const DEFAULT_ADENA_URL = 'https://www.adena.app';
 
@@ -61,11 +62,15 @@ export class AdenaSDK {
   }
 
   async connectWallet(): Promise<void> {
-    return this.connectionManager.connectWallet().catch(() => {
-      if (this.config.walletDownloadUrl) {
-        this.openLink(this.config.walletDownloadUrl);
+    try {
+      await this.connectionManager.connectWallet();
+    } catch (e) {
+      const openWalletLink = !isTM2WalletProvider(this.walletProvider) && !!this.config.walletDownloadUrl;
+      if (openWalletLink) {
+        this.openLink(this.config.walletDownloadUrl!);
       }
-    });
+      console.error(e);
+    }
   }
 
   disconnectWallet(): void {
