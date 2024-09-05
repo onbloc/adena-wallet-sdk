@@ -7,8 +7,8 @@ export type AccountInfo = {
   chainId: string;
   sequence: string;
   status: AccountStatusType;
-  public_key: {
+  publicKey: {
     '@type': string;
     value: string;
-  };
+  } | null;
 };

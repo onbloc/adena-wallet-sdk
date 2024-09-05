@@ -1,5 +1,5 @@
 import { WalletProvider } from '../providers';
-import { WalletResponseFailedType, WalletResponseStatus, WalletResponseSuccessType } from '../types';
+import { WalletResponseFailureType, WalletResponseStatus, WalletResponseSuccessType } from '../types';
 
 export const mockWalletProvider: jest.Mocked<WalletProvider> = {
   isConnected: jest.fn().mockResolvedValue({
@@ -86,7 +86,7 @@ export const isConnectedSuccessMock = {
 export const isConnectedFailureMock = {
   code: 4000,
   status: WalletResponseStatus.FAILURE,
-  type: WalletResponseFailedType.ALREADY_CONNECTED,
+  type: WalletResponseFailureType.ALREADY_CONNECTED,
   message: '',
   data: false,
 };
@@ -102,7 +102,7 @@ export const addEstablishSuccessMock = {
 export const addEstablishFailureMock = {
   code: 4000,
   status: WalletResponseStatus.FAILURE,
-  type: WalletResponseFailedType.ALREADY_CONNECTED,
+  type: WalletResponseFailureType.ALREADY_CONNECTED,
   message: '',
   data: null,
 };

@@ -13,7 +13,7 @@ export type ContractMessage = {
   value: TMessage;
 };
 
-type TransactionParams = {
+export type TransactionParams = {
   messages: ContractMessage[];
   gasFee: number;
   gasWanted: number;
