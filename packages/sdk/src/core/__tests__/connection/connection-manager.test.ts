@@ -8,6 +8,11 @@ import {
 } from '../../__mocks__/mock-wallet-provider';
 import { ConnectionManager, ConnectionState } from '../../connection';
 import { SDKConnectionConfigure } from '../../types/config.types';
+import { isTM2WalletProvider } from '../../utils/provider.utils';
+
+jest.mock('../../utils/provider.utils', () => ({
+  isTM2WalletProvider: jest.fn(),
+}));
 
 describe('ConnectionManager', () => {
   let connectionManager: ConnectionManager;
@@ -15,6 +20,8 @@ describe('ConnectionManager', () => {
 
   beforeEach(() => {
     defineGlobalMock();
+    // Is not TM2WalletProvider
+    (isTM2WalletProvider as unknown as jest.Mock).mockReturnValue(false);
     config = { isSession: true };
 
     // Initialize ConnectionManager with a real instance of ConnectionStateManager

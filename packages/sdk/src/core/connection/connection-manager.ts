@@ -1,6 +1,8 @@
-import { WalletProvider } from '../providers';
+import { GnoWalletProvider } from '../../providers/gno-wallet';
+import { TM2WalletProvider, WalletProvider } from '../providers';
 import { WalletConnectionEvent, WalletResponseStatus } from '../types';
 import { SDKConnectionConfigure } from '../types/config.types';
+import { isTM2WalletProvider } from '../utils/provider.utils';
 import { ConnectionState, ConnectionStateManager } from './connection-state';
 
 export class ConnectionManager {
@@ -8,7 +10,7 @@ export class ConnectionManager {
   private listeners: ((event: WalletConnectionEvent) => void)[];
 
   constructor(
-    private provider: WalletProvider,
+    private provider: WalletProvider | TM2WalletProvider,
     private config: SDKConnectionConfigure
   ) {
     this.listeners = [];
@@ -20,6 +22,39 @@ export class ConnectionManager {
   }
 
   async connectWallet(): Promise<void> {
+    if (isTM2WalletProvider(this.provider)) {
+      return this.connectTM2Wallet();
+    }
+    return this.connectAdenaWallet();
+  }
+
+  disconnectWallet(): void {
+    if (this.provider instanceof GnoWalletProvider) {
+      this.provider.disconnect();
+    }
+    this.disconnect();
+  }
+
+  getConnectionState(): ConnectionState {
+    return this.stateManager.getState();
+  }
+
+  getWalletProvider(): WalletProvider {
+    if (this.stateManager.getState() !== ConnectionState.CONNECTED) {
+      throw new Error('not connect wallet');
+    }
+    return this.provider;
+  }
+
+  on(listener: (connection: WalletConnectionEvent) => void): void {
+    this.listeners.push(listener);
+  }
+
+  off(listener: (connection: WalletConnectionEvent) => void): void {
+    this.listeners = this.listeners.filter((l) => l !== listener);
+  }
+
+  private async connectAdenaWallet(): Promise<void> {
     if (this.getConnectionState() !== ConnectionState.CONNECTED) {
       this.stateManager.setState(ConnectionState.CONNECTING);
     }
@@ -46,27 +81,23 @@ export class ConnectionManager {
     this.stateManager.setState(ConnectionState.DISCONNECTED);
   }
 
-  disconnectWallet(): void {
-    this.disconnect();
-  }
-
-  getConnectionState(): ConnectionState {
-    return this.stateManager.getState();
-  }
-
-  getWalletProvider(): WalletProvider {
-    if (this.stateManager.getState() !== ConnectionState.CONNECTED) {
-      throw new Error('not connect wallet');
+  private async connectTM2Wallet(): Promise<void> {
+    if (this.getConnectionState() !== ConnectionState.CONNECTED) {
+      this.stateManager.setState(ConnectionState.CONNECTING);
     }
-    return this.provider;
-  }
 
-  on(listener: (connection: WalletConnectionEvent) => void): void {
-    this.listeners.push(listener);
-  }
+    try {
+      const connected = await (this.provider as TM2WalletProvider).connect();
+      if (connected) {
+        this.connect();
+        return;
+      }
+    } catch (error) {
+      this.stateManager.setState(ConnectionState.ERROR);
+      throw error;
+    }
 
-  off(listener: (connection: WalletConnectionEvent) => void): void {
-    this.listeners = this.listeners.filter((l) => l !== listener);
+    this.stateManager.setState(ConnectionState.DISCONNECTED);
   }
 
   private connect() {
