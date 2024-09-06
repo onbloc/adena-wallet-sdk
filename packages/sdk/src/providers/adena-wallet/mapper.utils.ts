@@ -1,23 +1,26 @@
 import {
   WalletResponse,
-  WalletResponseFailedType,
+  WalletResponseFailureType,
+  WalletResponseRejectType,
   WalletResponseStatus,
   WalletResponseSuccessType,
   WalletResponseType,
-  WalletResponseRejectedType,
 } from '../../core/types';
 import { AdenaResponse, AdenaResponseStatus } from './types';
 
 export function isSuccessType(type: WalletResponseType | string): type is WalletResponseSuccessType {
-  return Object.values(WalletResponseSuccessType).includes(type as WalletResponseSuccessType);
+  const typeValue = type.toString();
+  return !!Object.values(WalletResponseSuccessType).find((value) => value === typeValue);
 }
 
-export function isFailedType(type: WalletResponseType | string): type is WalletResponseFailedType {
-  return Object.values(WalletResponseFailedType).includes(type as WalletResponseFailedType);
+export function isFailedType(type: WalletResponseType | string): type is WalletResponseFailureType {
+  const typeValue = type.toString();
+  return !!Object.values(WalletResponseFailureType).find((value) => value === typeValue);
 }
 
-export function isRejectType(type: WalletResponseType | string): type is WalletResponseRejectedType {
-  return Object.values(WalletResponseRejectedType).includes(type as WalletResponseRejectedType);
+export function isRejectType(type: WalletResponseType | string): type is WalletResponseRejectType {
+  const typeValue = type.toString();
+  return !!Object.values(WalletResponseRejectType).find((value) => value === typeValue);
 }
 
 function mapResponseStatus(status: AdenaResponseStatus): WalletResponseStatus {

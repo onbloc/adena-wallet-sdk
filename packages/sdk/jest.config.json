@@ -1,5 +1,11 @@
 {
   "preset": "ts-jest",
   "testEnvironment": "node",
-  "modulePathIgnorePatterns": ["bin", "node_modules"]
+  "transform": {
+    "^.+\\.(ts|tsx)$": "ts-jest"
+  },
+  "testMatch": ["<rootDir>/**/*.test.(ts|tsx)"],
+  "moduleFileExtensions": ["ts", "tsx", "js", "jsx"],
+  "moduleDirectories": ["node_modules", "<rootDir>/packages"],
+  "modulePathIgnorePatterns": ["bin", "node_modules", "coverage", "__mocks__"]
 }

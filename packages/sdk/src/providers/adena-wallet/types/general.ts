@@ -27,10 +27,10 @@ export type GetAccountResponseData = {
   chainId: string;
   sequence: string;
   status: EAccountStatus;
-  public_key: {
+  publicKey: {
     '@type': string;
     value: string;
-  };
+  } | null;
 };
 
 type GetAccountResponse = AdenaResponse<GetAccountResponseType, GetAccountResponseData>;

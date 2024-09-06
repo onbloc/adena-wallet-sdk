@@ -1,9 +1,9 @@
 import { MsgAddPackage, MsgCall, MsgSend } from '@gnolang/gno-js-client';
 import { MsgRun } from '@gnolang/gno-js-client/bin/proto/gno/vm';
 
-export type MessageType = '/bank.MsgSend' | '/vm.m_call' | '/vm.m_addpkg' | '/vm.m_run';
+export type TransactionMessageType = '/bank.MsgSend' | '/vm.m_call' | '/vm.m_addpkg' | '/vm.m_run';
 
-export type MessageValue = MsgAddPackage | MsgCall | MsgSend | MsgRun;
+export type TransactionMessageValue = MsgAddPackage | MsgCall | MsgSend | MsgRun;
 
 export enum BroadcastType {
   SYNC = 'SYNC',
@@ -11,8 +11,8 @@ export enum BroadcastType {
 }
 
 export type TransactionMessage = {
-  type: MessageType;
-  value: MessageValue;
+  type: TransactionMessageType;
+  value: TransactionMessageValue;
 };
 
 export interface TransactionData {

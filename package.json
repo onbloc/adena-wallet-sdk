@@ -7,7 +7,7 @@
     "url": "https://github.com/onbloc/adena-wallet-sdk"
   },
   "scripts": {
-    "build": "yarn workspaces foreach -vptR run build",
+    "build": "yarn workspaces foreach -vA run build",
     "lint": "yarn workspaces foreach -vA run lint",
     "lint:fix": "yarn workspaces foreach -vA run lint:fix",
     "test": "yarn workspaces foreach -vA run test",
