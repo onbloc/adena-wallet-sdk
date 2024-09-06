@@ -3,6 +3,7 @@ import { CustomChainConfig, WALLET_ADAPTERS } from '@web3auth/base';
 import { CommonPrivateKeyProvider } from '@web3auth/base-provider';
 import { Web3AuthNoModal } from '@web3auth/no-modal';
 import { OpenloginAdapter } from '@web3auth/openlogin-adapter';
+
 import { hexToUint8Array } from '../../core/utils/encode.utils';
 import { GnoWalletProvider } from './gno-wallet';
 
@@ -64,6 +65,7 @@ export class GnoSocialWalletProvider extends GnoWalletProvider {
     if (!this.web3auth.provider) {
       throw new Error('Not initialized web3 provider.');
     }
+
     const privateKey = await this.web3auth.provider.request({
       method: 'private_key',
     });

@@ -1,3 +1,4 @@
+import { decodeTxMessages } from '@gnolang/gno-js-client';
 import {
   JSONRPCProvider,
   Secp256k1PubKeyType,
@@ -6,7 +7,6 @@ import {
   uint8ArrayToBase64,
 } from '@gnolang/tm2-js-client';
 
-import { decodeTxMessages } from '@gnolang/gno-js-client';
 import { BroadcastType, WalletResponseFailureType, WalletResponseSuccessType } from '../../core';
 import { TM2WalletProvider } from '../../core/providers/tm2-wallet';
 import {
