@@ -3,15 +3,20 @@ import {
   addEstablish,
   addNetwork,
   broadcastTransaction,
+  connect,
+  disconnect,
   getAccount,
+  getConnectionState,
   isConnected,
+  offConnectionChange,
   onChangeAccount,
   onChangeNetwork,
+  onConnectionChange,
   signTransaction,
   switchNetwork,
 } from '../methods';
 import { WalletProvider } from '../providers';
-import { SDKConfigure } from '../types/config.types';
+import { SDKConfigure } from '../types';
 import {
   AddEstablishOptions,
   AddEstablishResponse,
@@ -21,17 +26,19 @@ import {
   BroadcastTransactionResponse,
   GetAccountResponse,
   IsConnectedResponse,
+  OffConnectionChangeOptions,
+  OffConnectionChangeResponse,
   OnChangeAccountOptions,
   OnChangeAccountResponse,
   OnChangeNetworkOptions,
   OnChangeNetworkResponse,
+  OnConnectionChangeOptions,
+  OnConnectionChangeResponse,
   SignTransactionOptions,
   SignTransactionResponse,
   SwitchNetworkOptions,
   SwitchNetworkResponse,
 } from '../types/methods';
-import { OffConnectionChangeOptions, OffConnectionChangeResponse } from '../types/methods/off-connection-change';
-import { OnConnectionChangeOptions, OnConnectionChangeResponse } from '../types/methods/on-connection-change';
 
 const DEFAULT_ADENA_URL = 'https://www.adena.app';
 
@@ -60,28 +67,24 @@ export class AdenaSDK {
     return this.connectionManager.getWalletProvider();
   }
 
-  async connectWallet(): Promise<void> {
-    return this.connectionManager.connectWallet().catch(() => {
-      if (this.config.walletDownloadUrl) {
-        this.openLink(this.config.walletDownloadUrl);
-      }
-    });
+  connectWallet(): Promise<void> {
+    return connect(this.connectionManager, this.config);
   }
 
   disconnectWallet(): void {
-    this.connectionManager.disconnectWallet();
+    return disconnect(this.connectionManager);
   }
 
   getConnectionState(): ConnectionState {
-    return this.connectionManager.getConnectionState();
+    return getConnectionState(this.connectionManager);
   }
 
   onConnectionChange(options: OnConnectionChangeOptions): OnConnectionChangeResponse {
-    return this.connectionManager.on(options.callback);
+    return onConnectionChange(this.connectionManager, options);
   }
 
   offConnectionChange(options: OffConnectionChangeOptions): OffConnectionChangeResponse {
-    return this.connectionManager.off(options.callback);
+    return offConnectionChange(this.connectionManager, options);
   }
 
   isConnected(): Promise<IsConnectedResponse> {
@@ -118,9 +121,5 @@ export class AdenaSDK {
 
   onChangeNetwork(options: OnChangeNetworkOptions): OnChangeNetworkResponse {
     return onChangeNetwork(this.walletProvider, options);
-  }
-
-  private openLink(url: string): void {
-    window?.open(url, '_blank');
   }
 }
