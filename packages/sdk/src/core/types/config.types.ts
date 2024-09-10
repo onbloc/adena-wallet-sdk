@@ -6,14 +6,33 @@ export interface SDKConnectionConfigure {
   isSession?: boolean;
 }
 
-export interface SocialConfigure {
+interface SocialBaseConfigure {
   chainId: string;
+  name: string;
   rpcTarget: string;
   network: 'mainnet' | 'testnet';
   clientId: string;
-  auth: {
-    googleName: string;
-    googleVerifier: string;
-    googleClientId: string;
-  };
+}
+
+export interface SocialGoogleConfigure extends SocialBaseConfigure {
+  authClientId: string;
+  verifier: string;
+}
+
+export interface SocialTwitterConfigure extends SocialBaseConfigure {
+  authClientId: string;
+  verifier: string;
+  domain: string;
+}
+
+export interface SocialCustomConfigure extends SocialBaseConfigure {
+  authClientId: string;
+  verifier: string;
+  domain: string;
+}
+
+export enum SocialType {
+  GOOGLE = 'GOOGLE',
+  TWITTER = 'TWITTER',
+  EMAIL = 'EMAIL',
 }
