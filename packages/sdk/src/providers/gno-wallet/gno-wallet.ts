@@ -32,6 +32,10 @@ export class GnoWalletProvider implements TM2WalletProvider {
     this.wallet = wallet || null;
   }
 
+  public getWallet(): TM2Wallet | null {
+    return this.wallet;
+  }
+
   async connect(): Promise<boolean> {
     return this.connectProvider();
   }

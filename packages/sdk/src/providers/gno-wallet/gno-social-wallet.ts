@@ -4,6 +4,7 @@ import { CommonPrivateKeyProvider } from '@web3auth/base-provider';
 import { Web3AuthNoModal } from '@web3auth/no-modal';
 import { OpenloginAdapter } from '@web3auth/openlogin-adapter';
 
+import { SocialConfigure } from '../../core';
 import { hexToUint8Array } from '../../core/utils/encode.utils';
 import { GnoWalletProvider } from './gno-wallet';
 
@@ -72,16 +73,7 @@ export class GnoSocialWalletProvider extends GnoWalletProvider {
     return `${privateKey}`;
   }
 
-  public static create(config: {
-    chainId: string;
-    rpcTarget: string;
-    network: 'mainnet' | 'testnet';
-    clientId: string;
-    auth: {
-      googleVerifier: string;
-      googleClientId: string;
-    };
-  }) {
+  public static create(config: SocialConfigure) {
     const chainConfig: CustomChainConfig = {
       chainNamespace: 'other',
       chainId: config.chainId,
@@ -108,8 +100,8 @@ export class GnoSocialWalletProvider extends GnoWalletProvider {
         uxMode: 'popup',
         loginConfig: {
           google: {
-            name: 'Adena',
             typeOfLogin: 'google',
+            name: config.auth.googleName,
             verifier: config.auth.googleVerifier,
             clientId: config.auth.googleClientId,
           },

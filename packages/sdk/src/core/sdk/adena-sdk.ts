@@ -1,3 +1,5 @@
+import { Wallet } from '@gnolang/tm2-js-client';
+import { AdenaWalletProvider, GnoSocialWalletProvider, GnoWalletProvider } from '../../providers';
 import { ConnectionManager, ConnectionState } from '../connection';
 import {
   addEstablish,
@@ -16,7 +18,7 @@ import {
   switchNetwork,
 } from '../methods';
 import { WalletProvider } from '../providers';
-import { SDKConfigure } from '../types';
+import { SDKConfigure, SocialConfigure } from '../types';
 import {
   AddEstablishOptions,
   AddEstablishResponse,
@@ -121,5 +123,17 @@ export class AdenaSDK {
 
   onChangeNetwork(options: OnChangeNetworkOptions): OnChangeNetworkResponse {
     return onChangeNetwork(this.walletProvider, options);
+  }
+
+  public static createAdenaWallet(config?: SDKConfigure): AdenaSDK {
+    return new AdenaSDK(new AdenaWalletProvider(), config);
+  }
+
+  public static createGnoWallet(wallet: Wallet, config?: SDKConfigure): AdenaSDK {
+    return new AdenaSDK(new GnoWalletProvider(wallet), config);
+  }
+
+  public static createGnoSocialWallet(config: SocialConfigure & SDKConfigure): AdenaSDK {
+    return new AdenaSDK(GnoSocialWalletProvider.create(config), config);
   }
 }
