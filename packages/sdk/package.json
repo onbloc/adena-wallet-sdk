@@ -3,7 +3,7 @@
   "version": "0.0.1",
   "description": "Adena Wallet SDK",
   "license": "MIT",
-  "author": "Onbloc, Inc.",
+  "author": "Onbloc Co., Ltd. <info@adena.app>",
   "homepage": "https://www.adena.app",
   "main": "./bin/index.js",
   "module": "./bin/index.mjs",
