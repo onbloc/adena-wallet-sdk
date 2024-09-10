@@ -13,11 +13,12 @@ export const connect = async (
       !isTM2WalletProvider(connectionManager.getWalletProvider()) && !!connectionOptions.walletDownloadUrl;
     if (openWalletLink) {
       openLink(connectionOptions.walletDownloadUrl!);
+    } else {
+      console.error((e as Error).message);
     }
-    console.error(e);
   }
 };
 
-const openLink = (url: string): void => {
-  window?.open(url, '_blank');
+export const openLink = (url: string): void => {
+  open(url, '_blank');
 };
