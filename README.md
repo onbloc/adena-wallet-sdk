@@ -2,7 +2,9 @@
 
 The Adena Wallet SDK is a TypeScript-based library designed to interact with the Adena Wallet and TM2 Wallet.
 
-This SDK provides various functionalities, including wallet connection, network switching, transaction signing, and more.
+This SDK provides various functionalities, including transaction signing, wallet connection, network switching, etc.
+
+(NPM Published at https://www.npmjs.com/package/@adena-wallet/sdk)
 
 ## Adena Wallet
 
@@ -48,7 +50,7 @@ adenaSDK.getAccount().then((account) => {
 
 ### `connectWallet`
 
-Connects the SDK to the wallet.
+Connects to a wallet via the SDK.
 
 **Example:**
 
@@ -60,7 +62,7 @@ adenaSDK.connectWallet().then(() => {
 
 ### `disconnectWallet`
 
-Disconnects the SDK from the wallet.
+Disconnects from a wallet via the SDK.
 
 **Example:**
 
@@ -70,7 +72,7 @@ adenaSDK.disconnectWallet();
 
 ### `getConnectionState`
 
-Retrieves the current connection state of the wallet.
+Retrieves the current connection state of a wallet.
 
 **Example:**
 
@@ -112,7 +114,7 @@ adenaSDK.offConnectionChange({ callback: listener });
 
 ### `isConnected`
 
-Checks if the wallet is currently connected.
+Checks if a wallet is currently connected.
 
 **Example:**
 
