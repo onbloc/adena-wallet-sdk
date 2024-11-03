@@ -17,6 +17,7 @@ export const mockWalletProvider: jest.Mocked<WalletProvider> = {
   isConnected: jest.fn().mockResolvedValue(makeResponseMessage(WalletResponseSuccessType.CONNECTION_SUCCESS)),
   addEstablish: jest.fn().mockResolvedValue(makeResponseMessage(WalletResponseSuccessType.CONNECTION_SUCCESS)),
   getAccount: jest.fn().mockResolvedValue(makeResponseMessage(WalletResponseSuccessType.GET_ACCOUNT_SUCCESS)),
+  getNetwork: jest.fn().mockResolvedValue(makeResponseMessage(WalletResponseSuccessType.GET_NETWORK_SUCCESS)),
   switchNetwork: jest.fn().mockResolvedValue(makeResponseMessage(WalletResponseSuccessType.SWITCH_NETWORK_SUCCESS)),
   addNetwork: jest.fn().mockResolvedValue(makeResponseMessage(WalletResponseSuccessType.ADD_NETWORK_SUCCESS)),
   signTransaction: jest.fn().mockResolvedValue(makeResponseMessage(WalletResponseSuccessType.SIGN_SUCCESS)),
@@ -40,6 +41,8 @@ export const addEstablishFailureMock = makeResponseMessage(WalletResponseFailure
 export const addEstablishRejectMock = makeResponseMessage(WalletResponseRejectType.CONNECTION_REJECTED, false);
 
 export const getAccountSuccessMock = makeResponseMessage(WalletResponseSuccessType.GET_ACCOUNT_SUCCESS);
+
+export const getNetworkSuccessMock = makeResponseMessage(WalletResponseSuccessType.GET_NETWORK_SUCCESS);
 
 export const switchNetworkSuccessMock = makeResponseMessage(WalletResponseSuccessType.SWITCH_NETWORK_SUCCESS);
 

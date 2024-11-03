@@ -2,7 +2,7 @@ import { Tx } from '@gnolang/tm2-js-client';
 
 import { makeResponseMessage } from '../../core';
 import { WalletProvider } from '../../core/providers';
-import { AccountInfo, WalletResponseFailureType, WalletResponseSuccessType } from '../../core/types';
+import { AccountInfo, NetworkInfo, WalletResponseFailureType, WalletResponseSuccessType } from '../../core/types';
 import {
   AddEstablishOptions,
   AddEstablishResponse,
@@ -11,6 +11,7 @@ import {
   BroadcastTransactionOptions,
   BroadcastTransactionResponse,
   GetAccountResponse,
+  GetNetworkResponse,
   IsConnectedResponse,
   OnChangeAccountOptions,
   OnChangeAccountResponse,
@@ -64,6 +65,14 @@ export class AdenaWalletProvider implements WalletProvider {
     };
 
     return mapResponseByAdenaResponse<AccountInfo>(response, accountInfo);
+  }
+
+  async getNetwork(): Promise<GetNetworkResponse> {
+    const adena = this.getAdena();
+    const response = await adena.GetNetwork();
+    const networkInfo: NetworkInfo = response.data;
+
+    return mapResponseByAdenaResponse<NetworkInfo>(response, networkInfo);
   }
 
   async switchNetwork(options: SwitchNetworkOptions): Promise<SwitchNetworkResponse> {

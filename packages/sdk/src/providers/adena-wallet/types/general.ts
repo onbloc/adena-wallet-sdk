@@ -36,3 +36,21 @@ export type GetAccountResponseData = {
 type GetAccountResponse = AdenaResponse<GetAccountResponseType, GetAccountResponseData>;
 
 export type AdenaGetAccount = () => Promise<GetAccountResponse>;
+
+enum GetNetworkResponseType {
+  GET_NETWORK_SUCCESS = 'GET_NETWORK_SUCCESS',
+  NO_ACCOUNT = 'NO_ACCOUNT',
+  WALLET_LOCKED = 'WALLET_LOCKED',
+}
+
+export type GetNetworkResponseData = {
+  chainId: string;
+  networkName: string;
+  addressPrefix: string;
+  rpcUrl: string;
+  indexerUrl: string | null;
+};
+
+type GetNetworkResponse = AdenaResponse<GetNetworkResponseType, GetNetworkResponseData>;
+
+export type AdenaGetNetwork = () => Promise<GetNetworkResponse>;
