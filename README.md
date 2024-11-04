@@ -136,6 +136,18 @@ adenaSDK.getAccount().then((account) => {
 });
 ```
 
+### `getNetwork`
+
+Retrieves network information from the connected wallet.
+
+**Example:**
+
+```
+adenaSDK.getNetwork().then((network) => {
+  console.log('Network:', network);
+});
+```
+
 ### `switchNetwork`
 
 Switches the wallet to a different network.

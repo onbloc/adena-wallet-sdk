@@ -6,6 +6,7 @@ import {
   BroadcastTransactionOptions,
   BroadcastTransactionResponse,
   GetAccountResponse,
+  GetNetworkResponse,
   IsConnectedResponse,
   OnChangeAccountOptions,
   OnChangeAccountResponse,
@@ -33,6 +34,13 @@ export interface WalletProvider {
    * @returns Original Adena response with the account information
    */
   getAccount: () => Promise<GetAccountResponse>;
+
+  /**
+   * Fetch information about the current connected network
+   * @async
+   * @returns Original Adena response with the network information
+   */
+  getNetwork: () => Promise<GetNetworkResponse>;
 
   /**
    * Switches the Adena network to the given chain ID

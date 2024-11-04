@@ -29,6 +29,7 @@ export type WalletResponseType =
 export enum WalletResponseSuccessType {
   CONNECTION_SUCCESS = 'CONNECTION_SUCCESS',
   GET_ACCOUNT_SUCCESS = 'GET_ACCOUNT',
+  GET_NETWORK_SUCCESS = 'GET_NETWORK',
   SIGN_SUCCESS = 'SIGN_TX',
   ADD_NETWORK_SUCCESS = 'ADD_NETWORK_SUCCESS',
   SWITCH_NETWORK_SUCCESS = 'SWITCH_NETWORK_SUCCESS',
@@ -65,6 +66,7 @@ export enum WalletResponseExecuteType {
   ADD_ESTABLISH = 'ADD_ESTABLISH',
   DO_CONTRACT = 'DO_CONTRACT',
   GET_ACCOUNT = 'GET_ACCOUNT',
+  GET_NETWORK = 'GET_NETWORK',
   SIGN_AMINO = 'SIGN_AMINO',
   SIGN_TX = 'SIGN_TX',
   ADD_NETWORK = 'ADD_NETWORK',
@@ -86,6 +88,12 @@ const WalletSuccessMessageInfo: Record<
     status: WalletResponseStatus.SUCCESS,
     type: WalletResponseSuccessType.GET_ACCOUNT_SUCCESS,
     message: 'Account information has been successfully returned.',
+  },
+  GET_NETWORK: {
+    code: 0,
+    status: WalletResponseStatus.SUCCESS,
+    type: WalletResponseSuccessType.GET_NETWORK_SUCCESS,
+    message: 'Network information has been successfully returned.',
   },
   SIGN_TX: {
     code: 0,
@@ -266,6 +274,12 @@ const WalletExecuteMessageInfo: Record<
     status: WalletResponseStatus.SUCCESS,
     type: WalletResponseExecuteType.GET_ACCOUNT,
     message: 'Get Account Information.',
+  },
+  GET_NETWORK: {
+    code: 0,
+    status: WalletResponseStatus.SUCCESS,
+    type: WalletResponseExecuteType.GET_NETWORK,
+    message: 'Get Network Information.',
   },
   SIGN_AMINO: {
     code: 0,

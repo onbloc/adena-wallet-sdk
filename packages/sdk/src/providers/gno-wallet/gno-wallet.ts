@@ -15,6 +15,7 @@ import {
   BroadcastTransactionOptions,
   BroadcastTransactionResponse,
   GetAccountResponse,
+  GetNetworkResponse,
   IsConnectedResponse,
   OnChangeAccountResponse,
   OnChangeNetworkResponse,
@@ -87,6 +88,10 @@ export class GnoWalletProvider implements TM2WalletProvider {
       console.log(e);
       return makeResponseMessage(WalletResponseFailureType.NO_ACCOUNT);
     }
+  }
+
+  async getNetwork(): Promise<GetNetworkResponse> {
+    throw new Error('not supported');
   }
 
   async switchNetwork(): Promise<SwitchNetworkResponse> {

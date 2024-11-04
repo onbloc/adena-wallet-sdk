@@ -3,6 +3,7 @@ import {
   AdenaAddNetwork,
   AdenaDoContract,
   AdenaGetAccount,
+  AdenaGetNetwork,
   AdenaOnEvent,
   AdenaSignTx,
   AdenaSwitchNetwork,
@@ -13,6 +14,8 @@ export type AdenaWallet = {
   AddEstablish: AdenaAddEstablish;
 
   GetAccount: AdenaGetAccount;
+
+  GetNetwork: AdenaGetNetwork;
 
   // Network
   SwitchNetwork: AdenaSwitchNetwork;

@@ -4,6 +4,7 @@ export * from './broadcast-transaction.types';
 export * from './connect.types';
 export * from './disconnect.types';
 export * from './get-account.types';
+export * from './get-network.types';
 export * from './is-connected.types';
 export * from './off-connection-change';
 export * from './on-change-account.types';
