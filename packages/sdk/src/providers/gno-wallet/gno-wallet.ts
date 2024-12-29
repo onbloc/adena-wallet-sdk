@@ -29,19 +29,19 @@ import { DEFAULT_RPC_URL } from '../../core/constants/chains.constant';
 
 export class GnoWalletProvider implements TM2WalletProvider {
   protected wallet: TM2Wallet | null;
-  protected rpc: string | null;
+  protected rpcUrl: string | null;
 
   constructor(wallet?: TM2Wallet) {
     this.wallet = wallet || null;
-    this.rpc = null;
+    this.rpcUrl = null;
   }
 
   public getWallet(): TM2Wallet | null {
     return this.wallet;
   }
 
-  async connect(rpc?: string): Promise<boolean> {
-    return this.connectProvider(rpc);
+  async connect(rpcUrl?: string): Promise<boolean> {
+    return this.connectProvider(rpcUrl);
   }
 
   async disconnect(): Promise<boolean> {
@@ -139,12 +139,12 @@ export class GnoWalletProvider implements TM2WalletProvider {
     throw new Error('not supported');
   }
 
-  protected connectProvider(rpc?: string): boolean {
+  protected connectProvider(rpcUrl?: string): boolean {
     if (!this.wallet) {
       return false;
     }
 
-    const provider = new JSONRPCProvider(rpc || DEFAULT_RPC_URL);
+    const provider = new JSONRPCProvider(rpcUrl || DEFAULT_RPC_URL);
     this.wallet.connect(provider);
     return true;
   }
