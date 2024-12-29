@@ -25,20 +25,23 @@ import {
 } from '../../core/types/methods';
 import { encodeTransaction } from '../../core/utils/encode.utils';
 import { makeResponseMessage } from '../../core/utils/message.utils';
+import { DEFAULT_RPC_URL } from '../../core/constants/chains.constant';
 
 export class GnoWalletProvider implements TM2WalletProvider {
   protected wallet: TM2Wallet | null;
+  protected rpcUrl: string | null;
 
   constructor(wallet?: TM2Wallet) {
     this.wallet = wallet || null;
+    this.rpcUrl = null;
   }
 
   public getWallet(): TM2Wallet | null {
     return this.wallet;
   }
 
-  async connect(): Promise<boolean> {
-    return this.connectProvider();
+  async connect(rpcUrl?: string): Promise<boolean> {
+    return this.connectProvider(rpcUrl);
   }
 
   async disconnect(): Promise<boolean> {
@@ -136,12 +139,12 @@ export class GnoWalletProvider implements TM2WalletProvider {
     throw new Error('not supported');
   }
 
-  protected connectProvider(): boolean {
+  protected connectProvider(rpcUrl?: string): boolean {
     if (!this.wallet) {
       return false;
     }
 
-    const provider = new JSONRPCProvider('https://rpc.gno.land:443');
+    const provider = new JSONRPCProvider(rpcUrl || DEFAULT_RPC_URL);
     this.wallet.connect(provider);
     return true;
   }
