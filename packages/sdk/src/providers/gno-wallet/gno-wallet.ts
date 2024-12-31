@@ -18,7 +18,6 @@ import {
   GetAccountResponse,
   GetNetworkResponse,
   IsConnectedResponse,
-  OnChangeAccountOptions,
   OnChangeAccountResponse,
   OnChangeNetworkOptions,
   OnChangeNetworkResponse,
@@ -189,7 +188,7 @@ export class GnoWalletProvider implements TM2WalletProvider {
     return makeResponseMessage(WalletResponseSuccessType.TRANSACTION_SUCCESS, transactionResult);
   }
 
-  onChangeAccount(options: OnChangeAccountOptions): OnChangeAccountResponse {
+  onChangeAccount(): OnChangeAccountResponse {
     throw new Error('not supported');
   }
 
