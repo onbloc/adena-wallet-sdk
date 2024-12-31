@@ -52,6 +52,7 @@ export enum WalletResponseFailureType {
   UNADDED_NETWORK = 'UNADDED_NETWORK',
   UNSUPPORTED_TYPE = 'UNSUPPORTED_TYPE',
   UNEXPECTED_ERROR = 'UNEXPECTED_ERROR',
+  NOT_INITIALIZED_NETWORK = 'NOT_INITIALIZED_NETWORK',
 }
 
 export enum WalletResponseRejectType {
@@ -202,6 +203,12 @@ const WalletFailureMessageInfo: Record<
     status: WalletResponseStatus.FAILURE,
     type: WalletResponseFailureType.UNADDED_NETWORK,
     message: 'The network has not been added on Adena.',
+  },
+  NOT_INITIALIZED_NETWORK: {
+    code: 4001,
+    status: WalletResponseStatus.FAILURE,
+    type: WalletResponseFailureType.NOT_INITIALIZED_NETWORK,
+    message: 'The network has not been initialized on Wallet.',
   },
   UNSUPPORTED_TYPE: {
     code: 4005,
