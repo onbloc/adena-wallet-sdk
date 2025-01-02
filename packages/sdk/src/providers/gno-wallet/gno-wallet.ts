@@ -29,6 +29,7 @@ import {
 import { encodeTransaction } from '../../core/utils/encode.utils';
 import { makeResponseMessage } from '../../core/utils/message.utils';
 import { DEFAULT_RPC_URL, GNO_ADDRESS_PREFIX } from '../../core/constants/chains.constant';
+import { normalizeRpcUrl, validateNetworkInput } from '../../core/utils/network.utils';
 
 export class GnoWalletProvider implements TM2WalletProvider {
   protected wallet: TM2Wallet | null;
@@ -139,20 +140,20 @@ export class GnoWalletProvider implements TM2WalletProvider {
   }
 
   async addNetwork(options: AddNetworkOptions): Promise<AddNetworkResponse> {
-    const { chainId, chainName, rpcUrl } = options;
-
-    if (!chainId || !chainName || !rpcUrl) {
+    if (!validateNetworkInput(options)) {
       return makeResponseMessage(WalletResponseFailureType.INVALID_FORMAT);
     }
 
-    if (rpcUrl.match(/\s/g)) {
-      return makeResponseMessage(WalletResponseFailureType.INVALID_FORMAT);
+    const normalizedRpcUrl = normalizeRpcUrl(options.rpcUrl);
+
+    if (this.isNetworkDuplicate(options.chainId, normalizedRpcUrl)) {
+      return makeResponseMessage(WalletResponseFailureType.NETWORK_ALREADY_EXISTS);
     }
 
     const network: NetworkInfo = {
-      chainId,
-      networkName: chainName,
-      rpcUrl: rpcUrl.replace(/\/$/, ''),
+      chainId: options.chainId,
+      networkName: options.chainName,
+      rpcUrl: normalizeRpcUrl(options.rpcUrl),
       addressPrefix: GNO_ADDRESS_PREFIX,
       indexerUrl: null,
     };
@@ -229,5 +230,18 @@ export class GnoWalletProvider implements TM2WalletProvider {
 
     // Trigger network change callback
     this.triggerNetworkCallback(this.currentNetwork.chainId);
+  }
+
+  /**
+   * Checks if a network with the given chainId or RPC URL already exists
+   *
+   * @param chainId
+   * @param normalizedRpcUrl
+   * @returns {boolean} true if network with same chainId or RPC URL exists, false otherwise
+   */
+  private isNetworkDuplicate(chainId: string, normalizedRpcUrl: string): boolean {
+    return this.networks.some(
+      (network) => network.chainId === chainId || normalizeRpcUrl(network.rpcUrl) === normalizedRpcUrl
+    );
   }
 }
