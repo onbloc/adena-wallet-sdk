@@ -146,7 +146,7 @@ export class GnoWalletProvider implements TM2WalletProvider {
 
     const normalizedRpcUrl = normalizeRpcUrl(options.rpcUrl);
 
-    if (this.isNetworkDuplicate(options.chainId, normalizedRpcUrl)) {
+    if (this.isExistingNetwork(options.chainId, normalizedRpcUrl)) {
       return makeResponseMessage(WalletResponseFailureType.NETWORK_ALREADY_EXISTS);
     }
 
@@ -239,7 +239,7 @@ export class GnoWalletProvider implements TM2WalletProvider {
    * @param normalizedRpcUrl
    * @returns {boolean} true if network with same chainId or RPC URL exists, false otherwise
    */
-  private isNetworkDuplicate(chainId: string, normalizedRpcUrl: string): boolean {
+  private isExistingNetwork(chainId: string, normalizedRpcUrl: string): boolean {
     return this.networks.some(
       (network) => network.chainId === chainId || normalizeRpcUrl(network.rpcUrl) === normalizedRpcUrl
     );
