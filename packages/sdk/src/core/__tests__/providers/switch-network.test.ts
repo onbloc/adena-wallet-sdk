@@ -57,20 +57,6 @@ describe('GnoWalletProvider.switchNetwork', () => {
     expect(provider['setNetwork']).not.toHaveBeenCalled();
   });
 
-  // Validation on provider connection failure
-  it('should return NOT_CONNECTED when provider connection fails', async () => {
-    const options: SwitchNetworkOptions = {
-      chainId: 'test-chain-1',
-    };
-
-    jest.spyOn(provider as unknown as { connectProvider(): boolean }, 'connectProvider').mockReturnValue(false);
-
-    const response = await provider.switchNetwork(options);
-
-    expect(response).toEqual(makeResponseMessage(WalletResponseFailureType.NOT_CONNECTED));
-    expect(provider['setNetwork']).toHaveBeenCalledWith(mockNetworks[0]);
-  });
-
   // Validate a normal network transition
   it('should successfully switch network', async () => {
     const options: SwitchNetworkOptions = {
@@ -81,7 +67,6 @@ describe('GnoWalletProvider.switchNetwork', () => {
 
     expect(response).toEqual(makeResponseMessage(WalletResponseSuccessType.SWITCH_NETWORK_SUCCESS));
     expect(provider['setNetwork']).toHaveBeenCalledWith(mockNetworks[0]);
-    expect(provider['connectProvider']).toHaveBeenCalled();
   });
 
   // Validate network change callback calls

@@ -131,11 +131,6 @@ export class GnoWalletProvider implements TM2WalletProvider {
 
     this.setNetwork(network);
 
-    const connected = this.connectProvider();
-    if (!connected) {
-      return makeResponseMessage(WalletResponseFailureType.NOT_CONNECTED);
-    }
-
     return makeResponseMessage(WalletResponseSuccessType.SWITCH_NETWORK_SUCCESS);
   }
 
