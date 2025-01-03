@@ -148,7 +148,7 @@ export class GnoWalletProvider implements TM2WalletProvider {
     const network: NetworkInfo = {
       chainId: options.chainId,
       networkName: options.chainName,
-      rpcUrl: normalizeRpcUrl(options.rpcUrl),
+      rpcUrl: normalizedRpcUrl,
       addressPrefix: GNO_ADDRESS_PREFIX,
       indexerUrl: null,
     };
