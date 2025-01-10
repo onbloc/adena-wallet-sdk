@@ -17,6 +17,7 @@ interface SocialBaseConfigure {
 
 export interface SocialGoogleConfigure extends SocialBaseConfigure {
   authClientId: string;
+  googleClientId: string;
   verifier: string;
 }
 

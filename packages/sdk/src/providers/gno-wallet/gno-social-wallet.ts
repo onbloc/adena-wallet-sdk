@@ -11,9 +11,9 @@ import {
   SocialTwitterConfigure,
   SocialType,
 } from '../../core';
+import { GNO_ADDRESS_PREFIX } from '../../core/constants/chains.constant';
 import { hexToUint8Array } from '../../core/utils/encode.utils';
 import { GnoWalletProvider } from './gno-wallet';
-import { GNO_ADDRESS_PREFIX } from '../../core/constants/chains.constant';
 
 export class GnoSocialWalletProvider extends GnoWalletProvider {
   private web3auth: Web3AuthNoModal;
@@ -130,7 +130,7 @@ export class GnoSocialWalletProvider extends GnoWalletProvider {
           [socialType]: {
             typeOfLogin: 'google',
             name: config.name,
-            clientId: config.authClientId,
+            clientId: config.googleClientId,
             verifier: config.verifier,
           },
         },
