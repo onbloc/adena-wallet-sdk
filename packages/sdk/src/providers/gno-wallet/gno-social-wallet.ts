@@ -13,6 +13,7 @@ import {
 } from '../../core';
 import { hexToUint8Array } from '../../core/utils/encode.utils';
 import { GnoWalletProvider } from './gno-wallet';
+import { GNO_ADDRESS_PREFIX } from '../../core/constants/chains.constant';
 
 export class GnoSocialWalletProvider extends GnoWalletProvider {
   private web3auth: Web3AuthNoModal;
@@ -91,7 +92,7 @@ export class GnoSocialWalletProvider extends GnoWalletProvider {
     return `${privateKey}`;
   }
 
-  public static createGoogle(config: SocialGoogleConfigure, networks?: NetworkInfo[]) {
+  public static createGoogle(config: SocialGoogleConfigure) {
     const socialType = SocialType.GOOGLE;
     const chainConfig: CustomChainConfig = {
       displayName: 'Gno.land',
@@ -100,6 +101,14 @@ export class GnoSocialWalletProvider extends GnoWalletProvider {
       chainNamespace: 'other',
       chainId: config.chainId,
       rpcTarget: config.rpcTarget,
+    };
+
+    const networkConfig: NetworkInfo = {
+      chainId: config.chainId,
+      addressPrefix: config.addressPrefix || GNO_ADDRESS_PREFIX,
+      indexerUrl: null,
+      networkName: config.network,
+      rpcUrl: config.rpcTarget,
     };
 
     const web3auth = new Web3AuthNoModal({
@@ -128,10 +137,10 @@ export class GnoSocialWalletProvider extends GnoWalletProvider {
       },
     });
     web3auth.configureAdapter(openloginAdapter);
-    return new GnoSocialWalletProvider(web3auth, socialType, networks);
+    return new GnoSocialWalletProvider(web3auth, socialType, [networkConfig]);
   }
 
-  public static createTwitter(config: SocialTwitterConfigure, networks?: NetworkInfo[]) {
+  public static createTwitter(config: SocialTwitterConfigure) {
     const socialType = SocialType.TWITTER;
     const chainConfig: CustomChainConfig = {
       displayName: 'Gno.land',
@@ -140,6 +149,14 @@ export class GnoSocialWalletProvider extends GnoWalletProvider {
       chainNamespace: 'other',
       chainId: config.chainId,
       rpcTarget: config.rpcTarget,
+    };
+
+    const networkConfig: NetworkInfo = {
+      chainId: config.chainId,
+      addressPrefix: config.addressPrefix || GNO_ADDRESS_PREFIX,
+      indexerUrl: null,
+      networkName: config.network,
+      rpcUrl: config.rpcTarget,
     };
 
     const web3auth = new Web3AuthNoModal({
@@ -172,10 +189,10 @@ export class GnoSocialWalletProvider extends GnoWalletProvider {
       },
     });
     web3auth.configureAdapter(openloginAdapter);
-    return new GnoSocialWalletProvider(web3auth, socialType, networks);
+    return new GnoSocialWalletProvider(web3auth, socialType, [networkConfig]);
   }
 
-  public static createEmail(config: SocialCustomConfigure, networks?: NetworkInfo[]) {
+  public static createEmail(config: SocialCustomConfigure) {
     const socialType = SocialType.EMAIL;
     const chainConfig: CustomChainConfig = {
       displayName: 'Gno.land',
@@ -184,6 +201,14 @@ export class GnoSocialWalletProvider extends GnoWalletProvider {
       chainNamespace: 'other',
       chainId: config.chainId,
       rpcTarget: config.rpcTarget,
+    };
+
+    const networkConfig: NetworkInfo = {
+      chainId: config.chainId,
+      addressPrefix: config.addressPrefix || GNO_ADDRESS_PREFIX,
+      indexerUrl: null,
+      networkName: config.network,
+      rpcUrl: config.rpcTarget,
     };
 
     const web3auth = new Web3AuthNoModal({
@@ -216,6 +241,6 @@ export class GnoSocialWalletProvider extends GnoWalletProvider {
       },
     });
     web3auth.configureAdapter(openloginAdapter);
-    return new GnoSocialWalletProvider(web3auth, socialType, networks);
+    return new GnoSocialWalletProvider(web3auth, socialType, [networkConfig]);
   }
 }

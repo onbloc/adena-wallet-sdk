@@ -234,6 +234,7 @@ export class GnoWalletProvider implements TM2WalletProvider {
 
   private setNetwork(network: NetworkInfo): void {
     this.currentChainId = network.chainId;
+    this.connectProvider();
 
     // Trigger network change callback
     this.triggerNetworkCallback(this.currentChainId);
