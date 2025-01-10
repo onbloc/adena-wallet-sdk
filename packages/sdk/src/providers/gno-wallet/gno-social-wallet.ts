@@ -4,21 +4,32 @@ import { CommonPrivateKeyProvider } from '@web3auth/base-provider';
 import { Web3AuthNoModal } from '@web3auth/no-modal';
 import { OpenloginAdapter } from '@web3auth/openlogin-adapter';
 
-import { SocialCustomConfigure, SocialGoogleConfigure, SocialTwitterConfigure, SocialType } from '../../core';
+import {
+  NetworkInfo,
+  SocialCustomConfigure,
+  SocialGoogleConfigure,
+  SocialTwitterConfigure,
+  SocialType,
+} from '../../core';
 import { hexToUint8Array } from '../../core/utils/encode.utils';
 import { GnoWalletProvider } from './gno-wallet';
+import { GNO_ADDRESS_PREFIX } from '../../core/constants/chains.constant';
 
 export class GnoSocialWalletProvider extends GnoWalletProvider {
   private web3auth: Web3AuthNoModal;
   private socialType: SocialType;
 
-  constructor(web3auth: Web3AuthNoModal, socialType: SocialType) {
-    super();
+  constructor(web3auth: Web3AuthNoModal, socialType: SocialType, networks?: NetworkInfo[]) {
+    super(undefined, networks);
     this.web3auth = web3auth;
     this.socialType = socialType;
   }
 
   public async connect(): Promise<boolean> {
+    if (!this.currentNetwork) {
+      return false;
+    }
+
     const initialized = await this.initWeb3Auth();
     if (!initialized) {
       return false;
@@ -32,13 +43,17 @@ export class GnoSocialWalletProvider extends GnoWalletProvider {
     const privateKey = await this.requestPrivateKey();
     const privateKeyBytes = hexToUint8Array(privateKey);
 
-    const wallet = await GnoWallet.fromPrivateKey(privateKeyBytes);
+    const wallet = await GnoWallet.fromPrivateKey(privateKeyBytes, {
+      addressPrefix: this.currentNetwork.addressPrefix,
+    });
     this.wallet = wallet;
 
     return this.connectProvider();
   }
 
   public disconnect = (): Promise<boolean> => {
+    this.disconnectProvider();
+
     return this.web3auth
       .logout({ cleanup: true })
       .then(() => true)
@@ -88,6 +103,14 @@ export class GnoSocialWalletProvider extends GnoWalletProvider {
       rpcTarget: config.rpcTarget,
     };
 
+    const networkConfig: NetworkInfo = {
+      chainId: config.chainId,
+      addressPrefix: config.addressPrefix || GNO_ADDRESS_PREFIX,
+      indexerUrl: null,
+      networkName: config.network,
+      rpcUrl: config.rpcTarget,
+    };
+
     const web3auth = new Web3AuthNoModal({
       clientId: config.clientId,
       web3AuthNetwork: config.network,
@@ -114,7 +137,7 @@ export class GnoSocialWalletProvider extends GnoWalletProvider {
       },
     });
     web3auth.configureAdapter(openloginAdapter);
-    return new GnoSocialWalletProvider(web3auth, socialType);
+    return new GnoSocialWalletProvider(web3auth, socialType, [networkConfig]);
   }
 
   public static createTwitter(config: SocialTwitterConfigure) {
@@ -126,6 +149,14 @@ export class GnoSocialWalletProvider extends GnoWalletProvider {
       chainNamespace: 'other',
       chainId: config.chainId,
       rpcTarget: config.rpcTarget,
+    };
+
+    const networkConfig: NetworkInfo = {
+      chainId: config.chainId,
+      addressPrefix: config.addressPrefix || GNO_ADDRESS_PREFIX,
+      indexerUrl: null,
+      networkName: config.network,
+      rpcUrl: config.rpcTarget,
     };
 
     const web3auth = new Web3AuthNoModal({
@@ -158,7 +189,7 @@ export class GnoSocialWalletProvider extends GnoWalletProvider {
       },
     });
     web3auth.configureAdapter(openloginAdapter);
-    return new GnoSocialWalletProvider(web3auth, socialType);
+    return new GnoSocialWalletProvider(web3auth, socialType, [networkConfig]);
   }
 
   public static createEmail(config: SocialCustomConfigure) {
@@ -170,6 +201,14 @@ export class GnoSocialWalletProvider extends GnoWalletProvider {
       chainNamespace: 'other',
       chainId: config.chainId,
       rpcTarget: config.rpcTarget,
+    };
+
+    const networkConfig: NetworkInfo = {
+      chainId: config.chainId,
+      addressPrefix: config.addressPrefix || GNO_ADDRESS_PREFIX,
+      indexerUrl: null,
+      networkName: config.network,
+      rpcUrl: config.rpcTarget,
     };
 
     const web3auth = new Web3AuthNoModal({
@@ -202,6 +241,6 @@ export class GnoSocialWalletProvider extends GnoWalletProvider {
       },
     });
     web3auth.configureAdapter(openloginAdapter);
-    return new GnoSocialWalletProvider(web3auth, socialType);
+    return new GnoSocialWalletProvider(web3auth, socialType, [networkConfig]);
   }
 }

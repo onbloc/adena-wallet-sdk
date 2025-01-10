@@ -7,10 +7,11 @@ import {
   uint8ArrayToBase64,
 } from '@gnolang/tm2-js-client';
 
-import { BroadcastType, WalletResponseFailureType, WalletResponseSuccessType } from '../../core';
+import { BroadcastType, NetworkInfo, WalletResponseFailureType, WalletResponseSuccessType } from '../../core';
 import { TM2WalletProvider } from '../../core/providers/tm2-wallet';
 import {
   AddEstablishResponse,
+  AddNetworkOptions,
   AddNetworkResponse,
   BroadcastTransactionOptions,
   BroadcastTransactionResponse,
@@ -18,34 +19,53 @@ import {
   GetNetworkResponse,
   IsConnectedResponse,
   OnChangeAccountResponse,
+  OnChangeNetworkOptions,
   OnChangeNetworkResponse,
   SignTransactionOptions,
   SignTransactionResponse,
+  SwitchNetworkOptions,
   SwitchNetworkResponse,
 } from '../../core/types/methods';
 import { encodeTransaction } from '../../core/utils/encode.utils';
 import { makeResponseMessage } from '../../core/utils/message.utils';
-import { DEFAULT_RPC_URL } from '../../core/constants/chains.constant';
+import { DEFAULT_RPC_URL, GNO_ADDRESS_PREFIX } from '../../core/constants/chains.constant';
+import { normalizeRpcUrl, validateNetworkInput } from '../../core/utils/network.utils';
 
 export class GnoWalletProvider implements TM2WalletProvider {
   protected wallet: TM2Wallet | null;
   protected rpcUrl: string | null;
+  protected networks: NetworkInfo[];
+  protected currentChainId: string | null;
+  protected networkCallback: ((chainId: string) => void) | null;
 
-  constructor(wallet?: TM2Wallet) {
+  constructor(wallet?: TM2Wallet, networks?: NetworkInfo[]) {
     this.wallet = wallet || null;
-    this.rpcUrl = null;
+    this.networks = networks || [];
+    this.currentChainId = null;
+  }
+
+  protected get currentNetwork(): NetworkInfo | null {
+    if (this.networks.length === 0) {
+      return null;
+    }
+
+    if (this.currentChainId === null) {
+      return this.networks[0];
+    }
+
+    return this.networks.find((network) => network.chainId === this.currentChainId) || null;
   }
 
   public getWallet(): TM2Wallet | null {
     return this.wallet;
   }
 
-  async connect(rpcUrl?: string): Promise<boolean> {
-    return this.connectProvider(rpcUrl);
+  async connect(): Promise<boolean> {
+    return this.connectProvider();
   }
 
   async disconnect(): Promise<boolean> {
-    return true;
+    return this.disconnectProvider();
   }
 
   async isConnected(): Promise<IsConnectedResponse> {
@@ -93,16 +113,61 @@ export class GnoWalletProvider implements TM2WalletProvider {
     }
   }
 
+  setNetworks(networks: NetworkInfo[]): void {
+    this.networks = networks;
+  }
+
   async getNetwork(): Promise<GetNetworkResponse> {
-    throw new Error('not supported');
+    const connected = this.wallet !== null;
+    if (!connected) {
+      return makeResponseMessage(WalletResponseFailureType.NOT_CONNECTED);
+    }
+
+    if (!this.currentNetwork) {
+      return makeResponseMessage(WalletResponseFailureType.NOT_INITIALIZED_NETWORK);
+    }
+
+    return makeResponseMessage(WalletResponseSuccessType.GET_NETWORK_SUCCESS, this.currentNetwork);
   }
 
-  async switchNetwork(): Promise<SwitchNetworkResponse> {
-    throw new Error('not supported');
+  async switchNetwork(options: SwitchNetworkOptions): Promise<SwitchNetworkResponse> {
+    const chainId = options.chainId;
+    if (!chainId) {
+      return makeResponseMessage(WalletResponseFailureType.INVALID_FORMAT);
+    }
+
+    const network = this.networks.find((network) => network.chainId === options.chainId);
+    if (!network) {
+      return makeResponseMessage(WalletResponseFailureType.UNADDED_NETWORK);
+    }
+
+    this.setNetwork(network);
+
+    return makeResponseMessage(WalletResponseSuccessType.SWITCH_NETWORK_SUCCESS);
   }
 
-  async addNetwork(): Promise<AddNetworkResponse> {
-    throw new Error('not supported');
+  async addNetwork(options: AddNetworkOptions): Promise<AddNetworkResponse> {
+    if (!validateNetworkInput(options)) {
+      return makeResponseMessage(WalletResponseFailureType.INVALID_FORMAT);
+    }
+
+    const normalizedRpcUrl = normalizeRpcUrl(options.rpcUrl);
+
+    if (this.isExistingNetwork(options.chainId, normalizedRpcUrl)) {
+      return makeResponseMessage(WalletResponseFailureType.NETWORK_ALREADY_EXISTS);
+    }
+
+    const network: NetworkInfo = {
+      chainId: options.chainId,
+      networkName: options.chainName,
+      rpcUrl: normalizedRpcUrl,
+      addressPrefix: GNO_ADDRESS_PREFIX,
+      indexerUrl: null,
+    };
+
+    this.networks = [...this.networks, network];
+
+    return makeResponseMessage(WalletResponseSuccessType.ADD_NETWORK_SUCCESS);
   }
 
   async signTransaction(options: SignTransactionOptions): Promise<SignTransactionResponse> {
@@ -135,17 +200,56 @@ export class GnoWalletProvider implements TM2WalletProvider {
     throw new Error('not supported');
   }
 
-  onChangeNetwork(): OnChangeNetworkResponse {
-    throw new Error('not supported');
+  onChangeNetwork(options: OnChangeNetworkOptions): OnChangeNetworkResponse {
+    this.networkCallback = options.callback;
   }
 
-  protected connectProvider(rpcUrl?: string): boolean {
+  protected triggerNetworkCallback(chainId: string): void {
+    if (!this.networkCallback) {
+      return;
+    }
+
+    this.networkCallback(chainId);
+  }
+
+  protected connectProvider(): boolean {
     if (!this.wallet) {
       return false;
     }
 
-    const provider = new JSONRPCProvider(rpcUrl || DEFAULT_RPC_URL);
+    const rpcUrl = this.currentNetwork?.rpcUrl || DEFAULT_RPC_URL;
+    const provider = new JSONRPCProvider(rpcUrl);
     this.wallet.connect(provider);
     return true;
+  }
+
+  protected disconnectProvider(): boolean {
+    this.networkCallback = null;
+    this.networks = [];
+    this.currentChainId = null;
+    this.wallet = null;
+
+    return true;
+  }
+
+  private setNetwork(network: NetworkInfo): void {
+    this.currentChainId = network.chainId;
+    this.connectProvider();
+
+    // Trigger network change callback
+    this.triggerNetworkCallback(this.currentChainId);
+  }
+
+  /**
+   * Checks if a network with the given chainId or RPC URL already exists
+   *
+   * @param chainId
+   * @param normalizedRpcUrl
+   * @returns {boolean} true if network with same chainId or RPC URL exists, false otherwise
+   */
+  private isExistingNetwork(chainId: string, normalizedRpcUrl: string): boolean {
+    return this.networks.some(
+      (network) => network.chainId === chainId || normalizeRpcUrl(network.rpcUrl) === normalizedRpcUrl
+    );
   }
 }

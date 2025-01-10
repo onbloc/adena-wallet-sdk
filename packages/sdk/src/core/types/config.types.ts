@@ -12,6 +12,7 @@ interface SocialBaseConfigure {
   rpcTarget: string;
   network: 'mainnet' | 'testnet';
   clientId: string;
+  addressPrefix?: string;
 }
 
 export interface SocialGoogleConfigure extends SocialBaseConfigure {
