@@ -40,7 +40,7 @@ describe('GnoWalletProvider.getNetwork', () => {
   // Test with wallet connected but network not initialized
   it('should return NOT_INITIALIZED_NETWORK when network is not initialized', async () => {
     (provider as unknown as { wallet: object }).wallet = {};
-    (provider as unknown as {networks: NetworkInfo[]}).networks = [];
+    (provider as unknown as { networks: NetworkInfo[] }).networks = [];
 
     const response = await provider.getNetwork();
 

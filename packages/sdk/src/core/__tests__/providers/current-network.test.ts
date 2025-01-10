@@ -1,6 +1,6 @@
-import { GnoWalletProvider } from "../../../providers";
-import { GNO_ADDRESS_PREFIX } from "../../constants/chains.constant";
-import { NetworkInfo } from "../../types";
+import { GnoWalletProvider } from '../../../providers';
+import { GNO_ADDRESS_PREFIX } from '../../constants/chains.constant';
+import { NetworkInfo } from '../../types';
 
 describe('GnoWalletProvider.currentNetwork', () => {
   let provider: GnoWalletProvider;
@@ -57,4 +57,4 @@ describe('GnoWalletProvider.currentNetwork', () => {
     const currentNetwork = (provider as unknown as { currentNetwork: NetworkInfo | null }).currentNetwork;
     expect(currentNetwork).toBeNull();
   });
-})
+});

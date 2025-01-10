@@ -9,5 +9,5 @@ export interface TM2WalletProvider extends WalletProvider {
 
   getWallet(): TM2Wallet | null;
 
-  getNetwork(): Promise<GetNetworkResponse>
+  getNetwork(): Promise<GetNetworkResponse>;
 }
