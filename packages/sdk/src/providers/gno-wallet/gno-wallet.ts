@@ -35,13 +35,25 @@ export class GnoWalletProvider implements TM2WalletProvider {
   protected wallet: TM2Wallet | null;
   protected rpcUrl: string | null;
   protected networks: NetworkInfo[];
-  protected currentNetwork: NetworkInfo | null;
+  protected currentChainId: string | null;
   protected networkCallback: ((chainId: string) => void) | null;
 
   constructor(wallet?: TM2Wallet, networks?: NetworkInfo[]) {
     this.wallet = wallet || null;
     this.networks = networks || [];
-    this.currentNetwork = null;
+    this.currentChainId = null;
+  }
+
+  protected get currentNetwork(): NetworkInfo | null {
+    if (this.networks.length === 0) {
+      return null;
+    }
+
+    if (this.currentChainId === null) {
+      return this.networks[0];
+    }
+
+    return this.networks.find((network) => network.chainId === this.currentChainId) || null;
   }
 
   public getWallet(): TM2Wallet | null {
@@ -214,17 +226,17 @@ export class GnoWalletProvider implements TM2WalletProvider {
   protected disconnectProvider(): boolean {
     this.networkCallback = null;
     this.networks = [];
-    this.currentNetwork = null;
+    this.currentChainId = null;
     this.wallet = null;
 
     return true;
   }
 
   private setNetwork(network: NetworkInfo): void {
-    this.currentNetwork = network;
+    this.currentChainId = network.chainId;
 
     // Trigger network change callback
-    this.triggerNetworkCallback(this.currentNetwork.chainId);
+    this.triggerNetworkCallback(this.currentChainId);
   }
 
   /**

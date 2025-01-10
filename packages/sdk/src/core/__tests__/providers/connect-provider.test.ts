@@ -31,7 +31,7 @@ describe('GnoWalletProvider.connectProvider', () => {
     } as unknown as TM2Wallet;
 
     provider = new GnoWalletProvider(mockWallet, [mockNetwork]);
-    provider['currentNetwork'] = mockNetwork;
+    provider['currentChainId'] = mockNetwork.chainId;
   });
 
   // Test the normal Provider connection case

@@ -40,6 +40,7 @@ describe('GnoWalletProvider.getNetwork', () => {
   // Test with wallet connected but network not initialized
   it('should return NOT_INITIALIZED_NETWORK when network is not initialized', async () => {
     (provider as unknown as { wallet: object }).wallet = {};
+    (provider as unknown as {networks: NetworkInfo[]}).networks = [];
 
     const response = await provider.getNetwork();
 
@@ -49,7 +50,7 @@ describe('GnoWalletProvider.getNetwork', () => {
   // Steady state test with both wallet connection and network initialization complete
   it('should return current network information when wallet is connected and network is initialized', async () => {
     (provider as unknown as { wallet: object }).wallet = {};
-    (provider as unknown as { currentNetwork: NetworkInfo }).currentNetwork = mockNetworks[0];
+    (provider as unknown as { currentChainId: string | null }).currentChainId = null;
 
     const response = await provider.getNetwork();
 
