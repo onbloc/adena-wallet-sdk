@@ -1,20 +1,10 @@
-import { MsgAddPackage, MsgCall, MsgSend } from '@gnolang/gno-js-client';
-import { MsgRun } from '@gnolang/gno-js-client/bin/proto/gno/vm';
 import { BroadcastTxCommitResult } from '@gnolang/tm2-js-client';
 
 import { AdenaResponse } from '.';
-
-type EMessageType = '/bank.MsgSend' | '/vm.m_call' | '/vm.m_addpkg' | '/vm.m_run';
-
-type TMessage = MsgAddPackage | MsgCall | MsgSend | MsgRun;
-
-export type ContractMessage = {
-  type: EMessageType;
-  value: TMessage;
-};
+import { TransactionMessage } from '../../../core';
 
 export type TransactionParams = {
-  messages: ContractMessage[];
+  messages: TransactionMessage[];
   gasFee: number;
   gasWanted: number;
   memo?: string;
