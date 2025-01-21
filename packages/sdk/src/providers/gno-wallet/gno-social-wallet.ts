@@ -1,5 +1,5 @@
 import { GnoWallet } from '@gnolang/gno-js-client';
-import { CustomChainConfig, UserInfo, WALLET_ADAPTERS } from '@web3auth/base';
+import { CustomChainConfig, WALLET_ADAPTERS } from '@web3auth/base';
 import { CommonPrivateKeyProvider } from '@web3auth/base-provider';
 import { Web3AuthNoModal } from '@web3auth/no-modal';
 import { OpenloginAdapter } from '@web3auth/openlogin-adapter';
@@ -14,6 +14,7 @@ import {
 import { GNO_ADDRESS_PREFIX } from '../../core/constants/chains.constant';
 import { hexToUint8Array } from '../../core/utils/encode.utils';
 import { GnoWalletProvider } from './gno-wallet';
+import { GetSocialUserProfileResponse } from '../../core/types/methods/get-social-user-profile.types';
 
 export class GnoSocialWalletProvider extends GnoWalletProvider {
   private web3auth: Web3AuthNoModal;
@@ -247,7 +248,7 @@ export class GnoSocialWalletProvider extends GnoWalletProvider {
     return new GnoSocialWalletProvider(web3auth, socialType, [networkConfig]);
   }
 
-  public async getSocialUserProfile(): Promise<Partial<UserInfo>> {
+  public async getSocialUserProfile(): Promise<GetSocialUserProfileResponse> {
     if (!this.web3auth) {
       throw new Error('Not initialized web3 provider.');
     }

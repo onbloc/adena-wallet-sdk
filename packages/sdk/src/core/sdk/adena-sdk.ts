@@ -41,6 +41,7 @@ import {
   SwitchNetworkOptions,
   SwitchNetworkResponse,
 } from '../types/methods';
+import { getSocialUserProfile } from '../methods/get-social-user-profile';
 
 const DEFAULT_ADENA_URL = 'https://www.adena.app';
 
@@ -191,6 +192,14 @@ export class AdenaSDK {
    */
   onChangeNetwork(options: OnChangeNetworkOptions): OnChangeNetworkResponse {
     return onChangeNetwork(this.walletProvider, options);
+  }
+
+  /**
+   * For social accounts, get the profile information for the social account.
+   * @returns A promise that resolves to the profile information for the social account.
+   */
+  getSocialUserProfile() {
+    return getSocialUserProfile(this.walletProvider);
   }
 
   public static createAdenaWallet(config?: SDKConfigure): AdenaSDK {
