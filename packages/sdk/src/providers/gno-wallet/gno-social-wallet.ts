@@ -1,5 +1,5 @@
 import { GnoWallet } from '@gnolang/gno-js-client';
-import { CustomChainConfig, WALLET_ADAPTERS } from '@web3auth/base';
+import { CustomChainConfig, UserInfo, WALLET_ADAPTERS } from '@web3auth/base';
 import { CommonPrivateKeyProvider } from '@web3auth/base-provider';
 import { Web3AuthNoModal } from '@web3auth/no-modal';
 import { OpenloginAdapter } from '@web3auth/openlogin-adapter';
@@ -10,7 +10,6 @@ import {
   SocialGoogleConfigure,
   SocialTwitterConfigure,
   SocialType,
-  SocialUserProfile,
 } from '../../core';
 import { GNO_ADDRESS_PREFIX } from '../../core/constants/chains.constant';
 import { hexToUint8Array } from '../../core/utils/encode.utils';
@@ -248,17 +247,11 @@ export class GnoSocialWalletProvider extends GnoWalletProvider {
     return new GnoSocialWalletProvider(web3auth, socialType, [networkConfig]);
   }
 
-  public async getEmailAddress(): Promise<SocialUserProfile> {
+  public async getSocialUserProfile(): Promise<Partial<UserInfo>> {
     if (!this.web3auth) {
       throw new Error('Not initialized web3 provider.');
     }
 
-    const userInfo = await this.web3auth.getUserInfo();
-
-    if (!userInfo.email) {
-      throw new Error('Email not found');
-    }
-
-    return { email: userInfo.email };
+    return await this.web3auth.getUserInfo();
   }
 }
