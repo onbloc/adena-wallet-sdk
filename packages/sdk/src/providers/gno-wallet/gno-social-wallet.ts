@@ -124,7 +124,7 @@ export class GnoSocialWalletProvider extends GnoWalletProvider {
     const openloginAdapter = new OpenloginAdapter({
       privateKeyProvider: privateKeyProvider,
       adapterSettings: {
-        storageKey: 'session',
+        storageKey: config.storageKey || 'local',
         clientId: config.clientId,
         uxMode: 'popup',
         loginConfig: {
@@ -173,7 +173,7 @@ export class GnoSocialWalletProvider extends GnoWalletProvider {
     const openloginAdapter = new OpenloginAdapter({
       privateKeyProvider: privateKeyProvider,
       adapterSettings: {
-        storageKey: 'session',
+        storageKey: config.storageKey || 'local',
         uxMode: 'popup',
         loginConfig: {
           [socialType]: {
@@ -226,7 +226,7 @@ export class GnoSocialWalletProvider extends GnoWalletProvider {
     const openloginAdapter = new OpenloginAdapter({
       privateKeyProvider: privateKeyProvider,
       adapterSettings: {
-        storageKey: 'session',
+        storageKey: config.storageKey || 'local',
         uxMode: 'popup',
         loginConfig: {
           [socialType]: {
