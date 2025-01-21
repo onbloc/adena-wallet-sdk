@@ -10,6 +10,7 @@ import {
   SocialGoogleConfigure,
   SocialTwitterConfigure,
   SocialType,
+  SocialUserProfile,
 } from '../../core';
 import { GNO_ADDRESS_PREFIX } from '../../core/constants/chains.constant';
 import { hexToUint8Array } from '../../core/utils/encode.utils';
@@ -242,5 +243,19 @@ export class GnoSocialWalletProvider extends GnoWalletProvider {
     });
     web3auth.configureAdapter(openloginAdapter);
     return new GnoSocialWalletProvider(web3auth, socialType, [networkConfig]);
+  }
+
+  public async getEmailAddress(): Promise<SocialUserProfile> {
+    if (!this.web3auth) {
+      throw new Error('Not initialized web3 provider.');
+    }
+
+    const userInfo = await this.web3auth.getUserInfo();
+
+    if (!userInfo.email) {
+      throw new Error('Email not found');
+    }
+
+    return { email: userInfo.email };
   }
 }

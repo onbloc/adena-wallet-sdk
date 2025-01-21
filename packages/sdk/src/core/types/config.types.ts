@@ -38,3 +38,7 @@ export enum SocialType {
   TWITTER = 'TWITTER',
   EMAIL = 'EMAIL',
 }
+
+export interface SocialUserProfile {
+  email: string;
+}
