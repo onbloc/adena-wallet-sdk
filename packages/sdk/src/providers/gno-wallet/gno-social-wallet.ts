@@ -32,6 +32,7 @@ export class GnoSocialWalletProvider extends GnoWalletProvider {
   ) {
     super(undefined, networks);
     this.socialType = socialType;
+    this.config = config;
     this.chainConfig = {
       displayName: 'Gno.land',
       tickerName: 'Gno.land',
@@ -40,7 +41,6 @@ export class GnoSocialWalletProvider extends GnoWalletProvider {
       chainId: this.config.chainId,
       rpcTarget: this.config.rpcTarget,
     };
-    this.config = config;
     this.extraLoginOptions = {};
 
     this.loginConfig = this.createLoginConfig();
