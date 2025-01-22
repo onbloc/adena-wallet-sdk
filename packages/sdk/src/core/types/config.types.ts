@@ -16,6 +16,12 @@ interface SocialBaseConfigure {
   storageKey?: 'session' | 'local';
 }
 
+export interface ExtraLoginOptions {
+  login_hint?: string;
+  domain?: string;
+  [key: string]: unknown;
+}
+
 export interface SocialGoogleConfigure extends SocialBaseConfigure {
   authClientId: string;
   googleClientId: string;
@@ -28,14 +34,15 @@ export interface SocialTwitterConfigure extends SocialBaseConfigure {
   domain: string;
 }
 
-export interface SocialCustomConfigure extends SocialBaseConfigure {
+export interface SocialEmailPasswordlessConfigure extends SocialBaseConfigure {
   authClientId: string;
   verifier: string;
   domain: string;
+  email: string;
 }
 
 export enum SocialType {
   GOOGLE = 'GOOGLE',
   TWITTER = 'TWITTER',
-  EMAIL = 'EMAIL',
+  EMAIL = 'EMAIL_PASSWORDLESS',
 }
