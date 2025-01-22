@@ -20,18 +20,83 @@ import { AuthAdapter, LoginConfig } from '@web3auth/auth-adapter';
 export class GnoSocialWalletProvider extends GnoWalletProvider {
   private web3auth: Web3AuthNoModal;
   private socialType: SocialType;
-  private extraLoginOptions?: ExtraLoginOptions;
+  private config: SocialGoogleConfigure | SocialTwitterConfigure | SocialEmailPasswordlessConfigure;
+  private chainConfig: CustomChainConfig;
+  private loginConfig: LoginConfig;
+  private extraLoginOptions: ExtraLoginOptions;
 
   constructor(
-    web3auth: Web3AuthNoModal,
     socialType: SocialType,
-    networks?: NetworkInfo[],
-    extraLoginOptions?: Record<string, unknown>
+    config: SocialGoogleConfigure | SocialTwitterConfigure | SocialEmailPasswordlessConfigure,
+    networks?: NetworkInfo[]
   ) {
     super(undefined, networks);
-    this.web3auth = web3auth;
     this.socialType = socialType;
+    this.chainConfig = {
+      displayName: 'Gno.land',
+      tickerName: 'Gno.land',
+      ticker: 'ugnot',
+      chainNamespace: 'other',
+      chainId: this.config.chainId,
+      rpcTarget: this.config.rpcTarget,
+    };
+    this.config = config;
+    this.extraLoginOptions = {};
+
+    this.loginConfig = this.createLoginConfig();
+
+    if (isSocialEmailPasswordlessConfigure(config)) {
+      this.extraLoginOptions = { login_hint: config.email };
+    }
+  }
+
+  public setExtraLoginOptions(extraLoginOptions: ExtraLoginOptions): void {
     this.extraLoginOptions = extraLoginOptions;
+  }
+
+  private createLoginConfig(): LoginConfig {
+    switch (this.socialType) {
+      case SocialType.GOOGLE:
+        const googleConfig = this.config as SocialGoogleConfigure;
+        return {
+          [this.socialType]: {
+            typeOfLogin: 'google',
+            name: googleConfig.name,
+            clientId: googleConfig.googleClientId,
+            verifier: googleConfig.verifier,
+          },
+        };
+
+      case SocialType.TWITTER:
+        const twitterConfig = this.config as SocialTwitterConfigure;
+        return {
+          [this.socialType]: {
+            typeOfLogin: 'twitter',
+            name: twitterConfig.name,
+            verifier: twitterConfig.verifier,
+            clientId: twitterConfig.authClientId,
+            jwtParameters: {
+              connection: 'twitter',
+              verifyerIdField: 'sub',
+              domain: twitterConfig.domain,
+            },
+          },
+        };
+
+      case SocialType.EMAIL:
+        const emailConfig = this.config as SocialEmailPasswordlessConfigure;
+        return {
+          [this.socialType]: {
+            typeOfLogin: 'email_passwordless',
+            name: emailConfig.name,
+            verifier: emailConfig.verifier,
+            clientId: emailConfig.clientId,
+          },
+        };
+
+      default:
+        throw new Error('Unsupported social type');
+    }
   }
 
   public async connect(): Promise<boolean> {
@@ -40,6 +105,8 @@ export class GnoSocialWalletProvider extends GnoWalletProvider {
     }
 
     try {
+      this.web3auth = await this.initializeWeb3Auth();
+
       const connectOptions = {
         loginProvider: this.socialType,
         ...(this.extraLoginOptions && { extraLoginOptions: this.extraLoginOptions }),
@@ -86,26 +153,21 @@ export class GnoSocialWalletProvider extends GnoWalletProvider {
     return `${privateKey}`;
   }
 
-  private static async initializeWeb3Auth(
-    clientId: string,
-    chainConfig: CustomChainConfig,
-    loginConfig?: LoginConfig,
-    network: 'mainnet' | 'testnet' = 'testnet'
-  ) {
+  private async initializeWeb3Auth() {
     const privateKeyProvider = new CommonPrivateKeyProvider({
-      config: { chainConfig },
+      config: { chainConfig: this.chainConfig },
     });
 
     const web3auth = new Web3AuthNoModal({
-      clientId,
-      web3AuthNetwork: network,
+      clientId: this.config.clientId,
+      web3AuthNetwork: this.config.network,
       privateKeyProvider,
     });
 
     const authAdapter = new AuthAdapter({
       adapterSettings: {
         uxMode: 'popup',
-        loginConfig,
+        loginConfig: this.loginConfig,
       },
     });
 
@@ -115,27 +177,6 @@ export class GnoSocialWalletProvider extends GnoWalletProvider {
   }
 
   public static async createGoogle(config: SocialGoogleConfigure) {
-    const socialType = SocialType.GOOGLE;
-    const chainConfig: CustomChainConfig = {
-      displayName: 'Gno.land',
-      tickerName: 'Gno.land',
-      ticker: 'ugnot',
-      chainNamespace: 'other',
-      chainId: config.chainId,
-      rpcTarget: config.rpcTarget,
-    };
-
-    const loginConfig: LoginConfig = {
-      [socialType]: {
-        typeOfLogin: 'google',
-        name: config.name,
-        clientId: config.googleClientId,
-        verifier: config.verifier,
-      },
-    };
-
-    const web3auth = await this.initializeWeb3Auth(config.clientId, chainConfig, loginConfig, config.network);
-
     const networkConfig: NetworkInfo = {
       chainId: config.chainId,
       addressPrefix: config.addressPrefix || GNO_ADDRESS_PREFIX,
@@ -144,34 +185,10 @@ export class GnoSocialWalletProvider extends GnoWalletProvider {
       rpcUrl: config.rpcTarget,
     };
 
-    return new GnoSocialWalletProvider(web3auth, socialType, [networkConfig]);
+    return new GnoSocialWalletProvider(SocialType.GOOGLE, config, [networkConfig]);
   }
 
   public static async createTwitter(config: SocialTwitterConfigure) {
-    const socialType = SocialType.TWITTER;
-    const chainConfig: CustomChainConfig = {
-      displayName: 'Gno.land',
-      tickerName: 'Gno.land',
-      ticker: 'ugnot',
-      chainNamespace: 'other',
-      chainId: config.chainId,
-      rpcTarget: config.rpcTarget,
-    };
-
-    const loginConfig: LoginConfig = {
-      [socialType]: {
-        typeOfLogin: 'twitter',
-        name: config.name,
-        verifier: config.verifier,
-        clientId: config.authClientId,
-        jwtParameters: {
-          connection: 'twitter',
-          verifyerIdField: 'sub',
-          domain: config.domain,
-        },
-      },
-    };
-
     const networkConfig: NetworkInfo = {
       chainId: config.chainId,
       addressPrefix: config.addressPrefix || GNO_ADDRESS_PREFIX,
@@ -180,30 +197,10 @@ export class GnoSocialWalletProvider extends GnoWalletProvider {
       rpcUrl: config.rpcTarget,
     };
 
-    const web3auth = await this.initializeWeb3Auth(config.clientId, chainConfig, loginConfig, config.network);
-    return new GnoSocialWalletProvider(web3auth, socialType, [networkConfig]);
+    return new GnoSocialWalletProvider(SocialType.TWITTER, config, [networkConfig]);
   }
 
   public static async createEmailPasswordless(config: SocialEmailPasswordlessConfigure) {
-    const socialType = SocialType.EMAIL;
-    const chainConfig: CustomChainConfig = {
-      displayName: 'Gno.land',
-      tickerName: 'Gno.land',
-      ticker: 'ugnot',
-      chainNamespace: 'other',
-      chainId: config.chainId,
-      rpcTarget: config.rpcTarget,
-    };
-
-    const loginConfig: LoginConfig = {
-      [socialType]: {
-        typeOfLogin: 'email_passwordless',
-        name: config.name,
-        verifier: config.verifier,
-        clientId: config.clientId,
-      },
-    };
-
     const networkConfig: NetworkInfo = {
       chainId: config.chainId,
       addressPrefix: config.addressPrefix || GNO_ADDRESS_PREFIX,
@@ -212,13 +209,7 @@ export class GnoSocialWalletProvider extends GnoWalletProvider {
       rpcUrl: config.rpcTarget,
     };
 
-    const web3auth = await this.initializeWeb3Auth(config.clientId, chainConfig, loginConfig, config.network);
-
-    const extraLoginOptions: ExtraLoginOptions = {
-      login_hint: config.email,
-    };
-
-    return new GnoSocialWalletProvider(web3auth, socialType, [networkConfig], extraLoginOptions);
+    return new GnoSocialWalletProvider(SocialType.EMAIL, config, [networkConfig]);
   }
 
   public async getSocialUserProfile(): Promise<GetSocialUserProfileResponse> {
@@ -228,4 +219,14 @@ export class GnoSocialWalletProvider extends GnoWalletProvider {
 
     return await this.web3auth.getUserInfo();
   }
+}
+
+function isSocialEmailPasswordlessConfigure(
+  config: SocialGoogleConfigure | SocialTwitterConfigure | SocialEmailPasswordlessConfigure
+): config is SocialEmailPasswordlessConfigure {
+  if (config === null || typeof config !== 'object') {
+    return false;
+  }
+
+  return 'email' in config;
 }
