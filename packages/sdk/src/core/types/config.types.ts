@@ -13,6 +13,7 @@ interface SocialBaseConfigure {
   network: 'mainnet' | 'testnet';
   clientId: string;
   addressPrefix?: string;
+  storageKey?: 'session' | 'local';
 }
 
 export interface SocialGoogleConfigure extends SocialBaseConfigure {

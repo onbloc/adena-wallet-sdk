@@ -14,6 +14,7 @@ import {
 import { GNO_ADDRESS_PREFIX } from '../../core/constants/chains.constant';
 import { hexToUint8Array } from '../../core/utils/encode.utils';
 import { GnoWalletProvider } from './gno-wallet';
+import { GetSocialUserProfileResponse } from '../../core/types/methods/get-social-user-profile.types';
 
 export class GnoSocialWalletProvider extends GnoWalletProvider {
   private web3auth: Web3AuthNoModal;
@@ -124,6 +125,7 @@ export class GnoSocialWalletProvider extends GnoWalletProvider {
     const openloginAdapter = new OpenloginAdapter({
       privateKeyProvider: privateKeyProvider,
       adapterSettings: {
+        storageKey: config.storageKey || 'local',
         clientId: config.clientId,
         uxMode: 'popup',
         loginConfig: {
@@ -172,6 +174,7 @@ export class GnoSocialWalletProvider extends GnoWalletProvider {
     const openloginAdapter = new OpenloginAdapter({
       privateKeyProvider: privateKeyProvider,
       adapterSettings: {
+        storageKey: config.storageKey || 'local',
         uxMode: 'popup',
         loginConfig: {
           [socialType]: {
@@ -224,6 +227,7 @@ export class GnoSocialWalletProvider extends GnoWalletProvider {
     const openloginAdapter = new OpenloginAdapter({
       privateKeyProvider: privateKeyProvider,
       adapterSettings: {
+        storageKey: config.storageKey || 'local',
         uxMode: 'popup',
         loginConfig: {
           [socialType]: {
@@ -242,5 +246,13 @@ export class GnoSocialWalletProvider extends GnoWalletProvider {
     });
     web3auth.configureAdapter(openloginAdapter);
     return new GnoSocialWalletProvider(web3auth, socialType, [networkConfig]);
+  }
+
+  public async getSocialUserProfile(): Promise<GetSocialUserProfileResponse> {
+    if (!this.web3auth) {
+      throw new Error('Not initialized web3 provider.');
+    }
+
+    return await this.web3auth.getUserInfo();
   }
 }

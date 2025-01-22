@@ -30,6 +30,7 @@ import { encodeTransaction } from '../../core/utils/encode.utils';
 import { makeResponseMessage } from '../../core/utils/message.utils';
 import { DEFAULT_RPC_URL, GNO_ADDRESS_PREFIX } from '../../core/constants/chains.constant';
 import { normalizeRpcUrl, validateNetworkInput } from '../../core/utils/network.utils';
+import { GetSocialUserProfileResponse } from '../../core/types/methods/get-social-user-profile.types';
 
 export class GnoWalletProvider implements TM2WalletProvider {
   protected wallet: TM2Wallet | null;
@@ -251,5 +252,9 @@ export class GnoWalletProvider implements TM2WalletProvider {
     return this.networks.some(
       (network) => network.chainId === chainId || normalizeRpcUrl(network.rpcUrl) === normalizedRpcUrl
     );
+  }
+
+  async getSocialUserProfile(): Promise<GetSocialUserProfileResponse> {
+    throw new Error('Social user profile is not supported in GnoWalletProvider. Use GnoSocialWalletProvider instead.');
   }
 }
