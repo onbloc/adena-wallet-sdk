@@ -16,10 +16,9 @@ interface SocialBaseConfigure {
   storageKey?: 'session' | 'local';
 }
 
-export interface ExtraLoginOptions {
+export interface SocialExtraLoginOptions {
   login_hint?: string;
   domain?: string;
-  [key: string]: unknown;
 }
 
 export interface SocialGoogleConfigure extends SocialBaseConfigure {
