@@ -1,3 +1,6 @@
+import { defaultTxFee } from '@gnolang/gno-js-client';
+import { Tx } from '@gnolang/tm2-js-client';
+import { decodeTransactionMessage, defaultGasWanted } from '../../core';
 import {
   WalletResponse,
   WalletResponseFailureType,
@@ -6,7 +9,7 @@ import {
   WalletResponseSuccessType,
   WalletResponseType,
 } from '../../core/types';
-import { AdenaResponse, AdenaResponseStatus } from './types';
+import { AdenaResponse, AdenaResponseStatus, TransactionParams } from './types';
 
 export function isSuccessType(type: WalletResponseType | string): type is WalletResponseSuccessType {
   const typeValue = type.toString();
@@ -49,4 +52,33 @@ export function mapResponseByAdenaResponse<ProviderResponseData = unknown>(
     message: response.message,
     data: data as ProviderResponseData,
   };
+}
+
+export function mapTxToTransactionParams(tx: Tx): TransactionParams {
+  const gasWanted = tx.fee?.gasWanted.toNumber() || defaultGasWanted;
+  const gasFee = tx.fee?.gasFee || defaultTxFee;
+  const gasFeeAmount = parseTokenAmount(gasFee);
+  const messages = tx.messages.map(decodeTransactionMessage);
+
+  return {
+    messages,
+    gasFee: gasFeeAmount,
+    gasWanted,
+    memo: tx.memo,
+  };
+}
+
+function parseTokenAmount(value: string): number {
+  const match = value.match(/^(\d+)/);
+  if (!match || match.length < 2) {
+    return 0;
+  }
+
+  try {
+    return parseInt(match[1]);
+  } catch (error) {
+    console.error('Error parsing token amount', error);
+  }
+
+  return 0;
 }

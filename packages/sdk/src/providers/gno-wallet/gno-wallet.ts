@@ -8,6 +8,7 @@ import {
 } from '@gnolang/tm2-js-client';
 
 import { BroadcastType, NetworkInfo, WalletResponseFailureType, WalletResponseSuccessType } from '../../core';
+import { DEFAULT_RPC_URL, GNO_ADDRESS_PREFIX } from '../../core/constants/chains.constant';
 import { TM2WalletProvider } from '../../core/providers/tm2-wallet';
 import {
   AddEstablishResponse,
@@ -28,7 +29,6 @@ import {
 } from '../../core/types/methods';
 import { encodeTransaction } from '../../core/utils/encode.utils';
 import { makeResponseMessage } from '../../core/utils/message.utils';
-import { DEFAULT_RPC_URL, GNO_ADDRESS_PREFIX } from '../../core/constants/chains.constant';
 import { normalizeRpcUrl, validateNetworkInput } from '../../core/utils/network.utils';
 import { GetSocialUserProfileResponse } from '../../core/types/methods/get-social-user-profile.types';
 
@@ -188,12 +188,14 @@ export class GnoWalletProvider implements TM2WalletProvider {
       return makeResponseMessage(WalletResponseFailureType.NOT_CONNECTED);
     }
 
+    const signedTransaction = await this.wallet!.signTransaction(options.tx, decodeTxMessages);
+
     const transactionEndpoint =
       options.broadcastType === BroadcastType.COMMIT
         ? TransactionEndpoint.BROADCAST_TX_COMMIT
         : TransactionEndpoint.BROADCAST_TX_SYNC;
 
-    const transactionResult = await this.wallet!.sendTransaction(options.tx, transactionEndpoint);
+    const transactionResult = await this.wallet!.sendTransaction(signedTransaction, transactionEndpoint);
     return makeResponseMessage(WalletResponseSuccessType.TRANSACTION_SUCCESS, transactionResult);
   }
 

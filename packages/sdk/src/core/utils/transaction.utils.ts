@@ -1,49 +1,29 @@
-import { Tx } from '@gnolang/tm2-js-client';
+import { Any, defaultTxFee } from '@gnolang/gno-js-client';
+import { Tx, TxFee } from '@gnolang/tm2-js-client';
+
 import { TransactionMessage } from '../types';
+import { encodeTransactionMessage } from './transaction-message.utils';
 
-export const defaultGasFee = {
-  amount: 1000000,
-  denom: 'ugnot',
-};
-
-export const defaultGasWanted = 1_000_000;
+export const defaultGasWanted = 10_000_000;
 
 export class TransactionBuilder {
   private _messages: TransactionMessage[] = [];
-  private _fees: { amount: string; denom: string }[] = [];
-  private _chainId: string = '';
   private _memo: string = '';
-  private _accountNumber: string = '';
-  private _sequence: string = '';
-  private _gasWanted: string = '';
+  private _gasWanted: number = defaultGasWanted;
+  private _gasFee: string = defaultTxFee;
 
   messages(...messages: TransactionMessage[]): TransactionBuilder {
     this._messages = messages;
     return this;
   }
 
-  fees(...fees: { amount: number; denom: string }[]): TransactionBuilder {
-    this._fees = fees.map((fee) => ({ amount: fee.amount.toString(), denom: fee.denom }));
+  fee(amount: number, denom: string): TransactionBuilder {
+    this._gasFee = `${amount}${denom}`;
     return this;
   }
 
   gasWanted(amount: number): TransactionBuilder {
-    this._gasWanted = amount.toString();
-    return this;
-  }
-
-  chainId(chainId: string): TransactionBuilder {
-    this._chainId = chainId;
-    return this;
-  }
-
-  accountNumber(accountNumber: number): TransactionBuilder {
-    this._accountNumber = accountNumber.toString();
-    return this;
-  }
-
-  sequence(sequence: number): TransactionBuilder {
-    this._sequence = sequence.toString();
+    this._gasWanted = amount;
     return this;
   }
 
@@ -52,23 +32,34 @@ export class TransactionBuilder {
     return this;
   }
 
-  build(): Tx {
-    const txDocument = {
-      msgs: this._messages,
-      fee: {
-        amount: this._fees,
-        gas: this._gasWanted,
-      },
-      chain_id: this._chainId,
-      account_number: this._accountNumber,
-      sequence: this._sequence,
-      memo: this._memo,
-    };
+  private get txMessages(): Any[] {
+    return this._messages.map((message) => {
+      return Any.create({
+        typeUrl: message.type,
+        value: encodeTransactionMessage(message),
+      });
+    });
+  }
 
-    return Tx.fromJSON(txDocument);
+  private get txFee(): TxFee {
+    return TxFee.create({
+      gasFee: this._gasFee,
+      gasWanted: this._gasWanted,
+    });
+  }
+
+  build(): Tx {
+    return {
+      messages: this.txMessages,
+      fee: this.txFee,
+      memo: this._memo,
+      signatures: [],
+    };
   }
 
   public static create(): TransactionBuilder {
-    return new TransactionBuilder().gasWanted(defaultGasWanted).fees(defaultGasFee);
+    const builder = new TransactionBuilder();
+
+    return builder.gasWanted(defaultGasWanted);
   }
 }

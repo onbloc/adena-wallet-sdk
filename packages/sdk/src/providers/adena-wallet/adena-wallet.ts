@@ -1,5 +1,3 @@
-import { Tx } from '@gnolang/tm2-js-client';
-
 import { makeResponseMessage } from '../../core';
 import { WalletProvider } from '../../core/providers';
 import { AccountInfo, NetworkInfo, WalletResponseFailureType, WalletResponseSuccessType } from '../../core/types';
@@ -22,8 +20,8 @@ import {
   SwitchNetworkOptions,
   SwitchNetworkResponse,
 } from '../../core/types/methods';
-import { isSuccessType, mapResponseByAdenaResponse } from './mapper.utils';
-import { AdenaWallet, TransactionParams } from './types';
+import { isSuccessType, mapResponseByAdenaResponse, mapTxToTransactionParams } from './mapper.utils';
+import { AdenaWallet } from './types';
 
 export class AdenaWalletProvider implements WalletProvider {
   private getAdena(): AdenaWallet {
@@ -91,14 +89,14 @@ export class AdenaWalletProvider implements WalletProvider {
 
   async signTransaction(options: SignTransactionOptions): Promise<SignTransactionResponse> {
     const adena = this.getAdena();
-    const response = await adena.SignTx(Tx.toJSON(options.tx) as TransactionParams);
+    const response = await adena.SignTx(mapTxToTransactionParams(options.tx));
 
     return mapResponseByAdenaResponse(response, response.data);
   }
 
   async broadcastTransaction(options: BroadcastTransactionOptions): Promise<BroadcastTransactionResponse> {
     const adena = this.getAdena();
-    const response = await adena.DoContract(Tx.toJSON(options.tx) as TransactionParams);
+    const response = await adena.DoContract(mapTxToTransactionParams(options.tx));
     const transactionResult = response.data;
 
     return mapResponseByAdenaResponse(response, transactionResult);

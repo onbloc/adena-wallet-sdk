@@ -1,4 +1,4 @@
-import { MsgAddPackage, MsgCall, MsgSend } from '@gnolang/gno-js-client';
+import { MsgAddPackage, MsgCall, MsgEndpoint, MsgSend } from '@gnolang/gno-js-client';
 import { MsgRun } from '@gnolang/gno-js-client/bin/proto/gno/vm';
 
 export type TransactionMessageType = '/bank.MsgSend' | '/vm.m_call' | '/vm.m_addpkg' | '/vm.m_run';
@@ -9,11 +9,27 @@ export enum BroadcastType {
   SYNC = 'SYNC',
   COMMIT = 'COMMIT',
 }
+export interface AddPackageMessage {
+  type: MsgEndpoint.MSG_ADD_PKG;
+  value: MsgAddPackage;
+}
 
-export type TransactionMessage = {
-  type: TransactionMessageType;
-  value: TransactionMessageValue;
-};
+export interface MsgCallMessage {
+  type: MsgEndpoint.MSG_CALL;
+  value: MsgCall;
+}
+
+export interface MsgSendMessage {
+  type: MsgEndpoint.MSG_SEND;
+  value: MsgSend;
+}
+
+export interface MsgRunMessage {
+  type: MsgEndpoint.MSG_RUN;
+  value: MsgRun;
+}
+
+export type TransactionMessage = AddPackageMessage | MsgCallMessage | MsgSendMessage | MsgRunMessage;
 
 export interface TransactionData {
   messages: TransactionMessage[];
