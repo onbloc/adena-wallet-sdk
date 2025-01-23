@@ -1,6 +1,6 @@
 {
   "name": "@adena-wallet/sdk",
-  "version": "0.0.5",
+  "version": "0.0.6",
   "description": "Adena Wallet SDK",
   "license": "MIT",
   "author": "Onbloc Co., Ltd. <info@adena.app>",
