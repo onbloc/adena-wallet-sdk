@@ -135,9 +135,9 @@ export class GnoSocialWalletProvider extends GnoWalletProvider {
           const privateKeyBytes = hexToUint8Array(privateKey);
           const wallet = await GnoWallet.fromPrivateKey(privateKeyBytes, {
             addressPrefix: this.currentNetwork.addressPrefix,
-          })
+          });
           this.wallet = wallet;
-          return this.connectProvider()
+          return this.connectProvider();
         }
       }
 
