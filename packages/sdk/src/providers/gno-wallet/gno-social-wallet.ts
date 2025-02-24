@@ -120,6 +120,27 @@ export class GnoSocialWalletProvider extends GnoWalletProvider {
         ...(this.extraLoginOptions && { extraLoginOptions: this.extraLoginOptions }),
       };
 
+      if (this.web3auth.connected) {
+        const userInfo = await this.web3auth.getUserInfo();
+        const currentLoginType = userInfo.typeOfLogin;
+
+        if (currentLoginType !== this.socialType) {
+          const networks = [...this.networks];
+          await this.disconnect();
+
+          this.setNetworks(networks);
+          this.web3auth = await this.initializeWeb3Auth();
+        } else {
+          const privateKey = await this.requestPrivateKey();
+          const privateKeyBytes = hexToUint8Array(privateKey);
+          const wallet = await GnoWallet.fromPrivateKey(privateKeyBytes, {
+            addressPrefix: this.currentNetwork.addressPrefix,
+          });
+          this.wallet = wallet;
+          return this.connectProvider();
+        }
+      }
+
       const provider = await this.web3auth.connectTo(WALLET_ADAPTERS.AUTH, connectOptions);
 
       if (!provider) {
