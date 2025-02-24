@@ -250,6 +250,33 @@ adenaSDK.onChangeNetwork({
 });
 ```
 
+## Utility Functions
+
+### `TransactionBuilder`
+
+Generate transaction data.
+
+- `makeMsgSendMessage`: Generates a `MsgSend` of bank transaction message.
+- `makeAddPackageMessage`: Generate a `AddPackage` of vm transaction message.
+- `makeMsgCallMessage`: Generate a `MsgCall` of vm transaction message.
+- `makeMsgRunMessage`: Generates a `MsgRun` of vm transaction message.
+
+**Example:**
+
+```
+const tx = TransactionBuilder.create()
+  .messages(
+    makeMsgSendMessage({
+      from_address: account.data?.address || '',
+      to_address: account.data?.address || '',
+      amount: '1ugnot',
+    }),
+    // You can add multiple messages
+  )
+  .memo('memo')
+  .build();
+```
+
 ## Development Setup
 
 The Node.js version is 18.14.2.  
