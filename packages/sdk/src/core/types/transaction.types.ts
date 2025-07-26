@@ -1,5 +1,6 @@
-import { MsgAddPackage, MsgCall, MsgEndpoint, MsgSend } from '@gnolang/gno-js-client';
-import { MsgRun } from '@gnolang/gno-js-client/bin/proto/gno/vm';
+import { MsgEndpoint } from '@gnolang/gno-js-client';
+import { MsgAddPackage, MsgCall, MsgSend } from './gno/proto';
+import { MsgRun } from './gno/proto/gno/vm';
 
 export type TransactionMessageType = '/bank.MsgSend' | '/vm.m_call' | '/vm.m_addpkg' | '/vm.m_run';
 
