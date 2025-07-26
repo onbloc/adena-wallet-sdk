@@ -52,28 +52,28 @@ export function encodeTransactionMessage(message: TransactionMessage): Uint8Arra
 }
 
 export function decodeTransactionMessage(message: Any): TransactionMessage {
-  if (message.typeUrl === MsgEndpoint.MSG_ADD_PKG) {
+  if (message.type_url === MsgEndpoint.MSG_ADD_PKG) {
     return {
       type: MsgEndpoint.MSG_ADD_PKG,
       value: MsgAddPackage.decode(message.value),
     };
   }
 
-  if (message.typeUrl === MsgEndpoint.MSG_CALL) {
+  if (message.type_url === MsgEndpoint.MSG_CALL) {
     return {
       type: MsgEndpoint.MSG_CALL,
       value: MsgCall.decode(message.value),
     };
   }
 
-  if (message.typeUrl === MsgEndpoint.MSG_SEND) {
+  if (message.type_url === MsgEndpoint.MSG_SEND) {
     return {
       type: MsgEndpoint.MSG_SEND,
       value: MsgSend.decode(message.value),
     };
   }
 
-  if (message.typeUrl === MsgEndpoint.MSG_RUN) {
+  if (message.type_url === MsgEndpoint.MSG_RUN) {
     return {
       type: MsgEndpoint.MSG_RUN,
       value: MsgRun.decode(message.value),

@@ -35,7 +35,7 @@ export class TransactionBuilder {
   private get txMessages(): Any[] {
     return this._messages.map((message) => {
       return Any.create({
-        typeUrl: message.type,
+        type_url: message.type,
         value: encodeTransactionMessage(message),
       });
     });
@@ -43,8 +43,8 @@ export class TransactionBuilder {
 
   private get txFee(): TxFee {
     return TxFee.create({
-      gasFee: this._gasFee,
-      gasWanted: this._gasWanted,
+      gas_fee: this._gasFee,
+      gas_wanted: this._gasWanted,
     });
   }
 
