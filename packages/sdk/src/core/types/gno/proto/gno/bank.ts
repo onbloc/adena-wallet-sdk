@@ -25,10 +25,7 @@ function createBaseMsgSend(): MsgSend {
 }
 
 export const MsgSend: MessageFns<MsgSend> = {
-  encode(
-    message: MsgSend,
-    writer: BinaryWriter = new BinaryWriter()
-  ): BinaryWriter {
+  encode(message: MsgSend, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
     if (message.from_address !== '') {
       writer.uint32(10).string(message.from_address);
     }
@@ -42,8 +39,7 @@ export const MsgSend: MessageFns<MsgSend> = {
   },
 
   decode(input: BinaryReader | Uint8Array, length?: number): MsgSend {
-    const reader =
-      input instanceof BinaryReader ? input : new BinaryReader(input);
+    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
     const end = length === undefined ? reader.len : reader.pos + length;
     const message = createBaseMsgSend();
     while (reader.pos < end) {
@@ -84,12 +80,8 @@ export const MsgSend: MessageFns<MsgSend> = {
 
   fromJSON(object: any): MsgSend {
     return {
-      from_address: isSet(object.from_address)
-        ? globalThis.String(object.from_address)
-        : '',
-      to_address: isSet(object.to_address)
-        ? globalThis.String(object.to_address)
-        : '',
+      from_address: isSet(object.from_address) ? globalThis.String(object.from_address) : '',
+      to_address: isSet(object.to_address) ? globalThis.String(object.to_address) : '',
       amount: isSet(object.amount) ? globalThis.String(object.amount) : '',
     };
   },
@@ -120,14 +112,7 @@ export const MsgSend: MessageFns<MsgSend> = {
   },
 };
 
-type Builtin =
-  | Date
-  | Function
-  | Uint8Array
-  | string
-  | number
-  | boolean
-  | undefined;
+type Builtin = Date | Function | Uint8Array | string | number | boolean | undefined;
 
 export type DeepPartial<T> = T extends Builtin
   ? T
