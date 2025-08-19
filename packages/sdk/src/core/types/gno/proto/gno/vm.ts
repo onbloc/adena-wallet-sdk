@@ -42,7 +42,7 @@ export interface MsgAddPackage {
   /** the amount of funds to be deposited at deployment, if any ("<amount><denomination>") */
   send: string;
   /** the amount of funds to put down for the storage fee, if any ("<amount><denomination>") */
-  max_deposit: string;
+  max_deposit?: string;
 }
 
 /**
@@ -72,9 +72,9 @@ export interface MemPackage {
   /** the associated package gno source */
   files: MemFile[];
   /** the (user defined) package type */
-  type?: Any | undefined;
+  type?: Any | null;
   /** the (user defined) extra information */
-  info?: Any | undefined;
+  info?: Any | null;
 }
 
 /**
@@ -118,7 +118,7 @@ export const MsgCall: MessageFns<MsgCall> = {
     }
     if (message.args) {
       for (const v of message.args) {
-        writer.uint32(42).string(v!);
+        writer.uint32(50).string(v!);
       }
     }
     return writer;
@@ -211,7 +211,7 @@ export const MsgCall: MessageFns<MsgCall> = {
     if (message.send !== undefined) {
       obj.send = message.send;
     }
-    if (message.max_deposit !== undefined) {
+    if (message.max_deposit !== undefined && message.max_deposit !== '') {
       obj.max_deposit = message.max_deposit;
     }
     if (message.pkg_path !== undefined) {
@@ -244,7 +244,7 @@ export const MsgCall: MessageFns<MsgCall> = {
 };
 
 function createBaseMsgAddPackage(): MsgAddPackage {
-  return { creator: '', package: undefined, send: '', max_deposit: '' };
+  return { creator: '', package: undefined, send: '', max_deposit: undefined };
 }
 
 export const MsgAddPackage: MessageFns<MsgAddPackage> = {
@@ -258,7 +258,7 @@ export const MsgAddPackage: MessageFns<MsgAddPackage> = {
     if (message.send !== '') {
       writer.uint32(26).string(message.send);
     }
-    if (message.max_deposit !== '') {
+    if (message.max_deposit !== '' && message.max_deposit !== undefined) {
       writer.uint32(34).string(message.max_deposit);
     }
     return writer;
@@ -299,8 +299,10 @@ export const MsgAddPackage: MessageFns<MsgAddPackage> = {
           if (tag !== 34) {
             break;
           }
-
-          message.max_deposit = reader.string();
+          const max_deposit = reader.string();
+          if (max_deposit !== '') {
+            message.max_deposit = max_deposit;
+          }
           continue;
         }
       }
@@ -317,7 +319,7 @@ export const MsgAddPackage: MessageFns<MsgAddPackage> = {
       creator: isSet(object.creator) ? globalThis.String(object.creator) : '',
       package: isSet(object.package) ? MemPackage.fromJSON(object.package) : undefined,
       send: isSet(object.send) ? globalThis.String(object.send) : '',
-      max_deposit: isSet(object.max_deposit) ? globalThis.String(object.max_deposit) : '',
+      max_deposit: isSet(object.max_deposit) ? globalThis.String(object.max_deposit) : undefined,
     };
   },
 
@@ -347,7 +349,7 @@ export const MsgAddPackage: MessageFns<MsgAddPackage> = {
     message.package =
       object.package !== undefined && object.package !== null ? MemPackage.fromPartial(object.package) : undefined;
     message.send = object.send ?? '';
-    message.max_deposit = object.max_deposit ?? '';
+    message.max_deposit = object.max_deposit ?? undefined;
     return message;
   },
 };
@@ -462,7 +464,7 @@ export const MsgRun: MessageFns<MsgRun> = {
 };
 
 function createBaseMemPackage(): MemPackage {
-  return { name: '', path: '', files: [], type: undefined, info: undefined };
+  return { name: '', path: '', files: [], type: null, info: null };
 }
 
 export const MemPackage: MessageFns<MemPackage> = {
@@ -476,10 +478,10 @@ export const MemPackage: MessageFns<MemPackage> = {
     for (const v of message.files) {
       MemFile.encode(v!, writer.uint32(26).fork()).join();
     }
-    if (message.type !== undefined) {
+    if (message.type !== undefined && message.type !== null) {
       Any.encode(message.type, writer.uint32(34).fork()).join();
     }
-    if (message.info !== undefined) {
+    if (message.info !== undefined && message.info !== null) {
       Any.encode(message.info, writer.uint32(42).fork()).join();
     }
     return writer;
@@ -518,6 +520,7 @@ export const MemPackage: MessageFns<MemPackage> = {
         }
         case 4: {
           if (tag !== 34) {
+            message.type = null;
             break;
           }
 
@@ -526,6 +529,7 @@ export const MemPackage: MessageFns<MemPackage> = {
         }
         case 5: {
           if (tag !== 42) {
+            message.info = null;
             break;
           }
 
@@ -546,8 +550,8 @@ export const MemPackage: MessageFns<MemPackage> = {
       name: isSet(object.name) ? globalThis.String(object.name) : '',
       path: isSet(object.path) ? globalThis.String(object.path) : '',
       files: globalThis.Array.isArray(object?.files) ? object.files.map((e: any) => MemFile.fromJSON(e)) : [],
-      type: isSet(object.type) ? Any.fromJSON(object.type) : undefined,
-      info: isSet(object.info) ? Any.fromJSON(object.info) : undefined,
+      type: isSet(object.type) ? Any.fromJSON(object.type) : null,
+      info: isSet(object.info) ? Any.fromJSON(object.info) : null,
     };
   },
 
@@ -562,11 +566,15 @@ export const MemPackage: MessageFns<MemPackage> = {
     if (message.files?.length) {
       obj.files = message.files.map((e) => MemFile.toJSON(e));
     }
-    if (message.type !== undefined) {
+    if (message.type !== undefined && message.type !== null) {
       obj.type = Any.toJSON(message.type);
+    } else {
+      obj.type = null;
     }
-    if (message.info !== undefined) {
+    if (message.info !== undefined && message.info !== null) {
       obj.info = Any.toJSON(message.info);
+    } else {
+      obj.info = null;
     }
     return obj;
   },
@@ -579,8 +587,8 @@ export const MemPackage: MessageFns<MemPackage> = {
     message.name = object.name ?? '';
     message.path = object.path ?? '';
     message.files = object.files?.map((e) => MemFile.fromPartial(e)) || [];
-    message.type = object.type !== undefined && object.type !== null ? Any.fromPartial(object.type) : undefined;
-    message.info = object.info !== undefined && object.info !== null ? Any.fromPartial(object.info) : undefined;
+    message.type = object.type !== undefined && object.type !== null ? Any.fromPartial(object.type) : null;
+    message.info = object.info !== undefined && object.info !== null ? Any.fromPartial(object.info) : null;
     return message;
   },
 };
