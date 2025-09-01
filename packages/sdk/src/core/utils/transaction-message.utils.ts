@@ -1,8 +1,5 @@
-import { MsgAddPackage, MsgCall, MsgRun } from '../types/gno/proto/gno/vm';
-
-import { MsgEndpoint } from '@gnolang/gno-js-client';
+import { Any, MsgAddPackage, MsgCall, MsgEndpoint, MsgRun, MsgSend } from '@gnolang/gno-js-client';
 import { AddPackageMessage, MsgCallMessage, MsgRunMessage, MsgSendMessage, TransactionMessage } from '../types';
-import { Any, MsgSend } from '../types/gno/proto';
 
 export function makeAddPackageMessage(value: MsgAddPackage): AddPackageMessage {
   return {
