@@ -8,17 +8,15 @@
 import { BinaryReader, BinaryWriter } from '@bufbuild/protobuf/wire';
 import Long from 'long';
 
-export const protobufPackage = 'gno.event';
+export const protobufPackage = 'gno.bank';
 
-/** GnoEvent is the event type for the bank module */
-export interface GnoEvent {
+export interface Event {
   type: string;
-  attributes: GnoEventAttribute[];
+  attrs: EventAttribute[];
   pkg_path: string;
 }
 
-/** GnoEventAttribute is the attribute type for the bank module */
-export interface GnoEventAttribute {
+export interface EventAttribute {
   key: string;
   value: string;
 }
@@ -32,23 +30,23 @@ export interface StorageDepositEvent {
 
 /** StorageUnlockEvent is emitted when a storage deposit fee is unlocked. */
 export interface StorageUnlockEvent {
-  /** For unlock, BytesDelta is negative */
   bytes_delta: Long;
   fee_refund: string;
   pkg_path: string;
+  refund_withheld: boolean;
 }
 
-function createBaseGnoEvent(): GnoEvent {
-  return { type: '', attributes: [], pkg_path: '' };
+function createBaseEvent(): Event {
+  return { type: '', attrs: [], pkg_path: '' };
 }
 
-export const GnoEvent: MessageFns<GnoEvent> = {
-  encode(message: GnoEvent, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
+export const Event: MessageFns<Event> = {
+  encode(message: Event, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
     if (message.type !== '') {
       writer.uint32(10).string(message.type);
     }
-    for (const v of message.attributes) {
-      GnoEventAttribute.encode(v!, writer.uint32(18).fork()).join();
+    for (const v of message.attrs) {
+      EventAttribute.encode(v!, writer.uint32(18).fork()).join();
     }
     if (message.pkg_path !== '') {
       writer.uint32(26).string(message.pkg_path);
@@ -56,10 +54,10 @@ export const GnoEvent: MessageFns<GnoEvent> = {
     return writer;
   },
 
-  decode(input: BinaryReader | Uint8Array, length?: number): GnoEvent {
+  decode(input: BinaryReader | Uint8Array, length?: number): Event {
     const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
     const end = length === undefined ? reader.len : reader.pos + length;
-    const message = createBaseGnoEvent();
+    const message = createBaseEvent();
     while (reader.pos < end) {
       const tag = reader.uint32();
       switch (tag >>> 3) {
@@ -76,7 +74,7 @@ export const GnoEvent: MessageFns<GnoEvent> = {
             break;
           }
 
-          message.attributes.push(GnoEventAttribute.decode(reader, reader.uint32()));
+          message.attrs.push(EventAttribute.decode(reader, reader.uint32()));
           continue;
         }
         case 3: {
@@ -96,23 +94,21 @@ export const GnoEvent: MessageFns<GnoEvent> = {
     return message;
   },
 
-  fromJSON(object: any): GnoEvent {
+  fromJSON(object: any): Event {
     return {
       type: isSet(object.type) ? globalThis.String(object.type) : '',
-      attributes: globalThis.Array.isArray(object?.attributes)
-        ? object.attributes.map((e: any) => GnoEventAttribute.fromJSON(e))
-        : [],
+      attrs: globalThis.Array.isArray(object?.attrs) ? object.attrs.map((e: any) => EventAttribute.fromJSON(e)) : [],
       pkg_path: isSet(object.pkg_path) ? globalThis.String(object.pkg_path) : '',
     };
   },
 
-  toJSON(message: GnoEvent): unknown {
+  toJSON(message: Event): unknown {
     const obj: any = {};
     if (message.type !== undefined) {
       obj.type = message.type;
     }
-    if (message.attributes?.length) {
-      obj.attributes = message.attributes.map((e) => GnoEventAttribute.toJSON(e));
+    if (message.attrs?.length) {
+      obj.attrs = message.attrs.map((e) => EventAttribute.toJSON(e));
     }
     if (message.pkg_path !== undefined) {
       obj.pkg_path = message.pkg_path;
@@ -120,24 +116,24 @@ export const GnoEvent: MessageFns<GnoEvent> = {
     return obj;
   },
 
-  create<I extends Exact<DeepPartial<GnoEvent>, I>>(base?: I): GnoEvent {
-    return GnoEvent.fromPartial(base ?? ({} as any));
+  create<I extends Exact<DeepPartial<Event>, I>>(base?: I): Event {
+    return Event.fromPartial(base ?? ({} as any));
   },
-  fromPartial<I extends Exact<DeepPartial<GnoEvent>, I>>(object: I): GnoEvent {
-    const message = createBaseGnoEvent();
+  fromPartial<I extends Exact<DeepPartial<Event>, I>>(object: I): Event {
+    const message = createBaseEvent();
     message.type = object.type ?? '';
-    message.attributes = object.attributes?.map((e) => GnoEventAttribute.fromPartial(e)) || [];
+    message.attrs = object.attrs?.map((e) => EventAttribute.fromPartial(e)) || [];
     message.pkg_path = object.pkg_path ?? '';
     return message;
   },
 };
 
-function createBaseGnoEventAttribute(): GnoEventAttribute {
+function createBaseEventAttribute(): EventAttribute {
   return { key: '', value: '' };
 }
 
-export const GnoEventAttribute: MessageFns<GnoEventAttribute> = {
-  encode(message: GnoEventAttribute, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
+export const EventAttribute: MessageFns<EventAttribute> = {
+  encode(message: EventAttribute, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
     if (message.key !== '') {
       writer.uint32(10).string(message.key);
     }
@@ -147,10 +143,10 @@ export const GnoEventAttribute: MessageFns<GnoEventAttribute> = {
     return writer;
   },
 
-  decode(input: BinaryReader | Uint8Array, length?: number): GnoEventAttribute {
+  decode(input: BinaryReader | Uint8Array, length?: number): EventAttribute {
     const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
     const end = length === undefined ? reader.len : reader.pos + length;
-    const message = createBaseGnoEventAttribute();
+    const message = createBaseEventAttribute();
     while (reader.pos < end) {
       const tag = reader.uint32();
       switch (tag >>> 3) {
@@ -179,14 +175,14 @@ export const GnoEventAttribute: MessageFns<GnoEventAttribute> = {
     return message;
   },
 
-  fromJSON(object: any): GnoEventAttribute {
+  fromJSON(object: any): EventAttribute {
     return {
       key: isSet(object.key) ? globalThis.String(object.key) : '',
       value: isSet(object.value) ? globalThis.String(object.value) : '',
     };
   },
 
-  toJSON(message: GnoEventAttribute): unknown {
+  toJSON(message: EventAttribute): unknown {
     const obj: any = {};
     if (message.key !== undefined) {
       obj.key = message.key;
@@ -197,11 +193,11 @@ export const GnoEventAttribute: MessageFns<GnoEventAttribute> = {
     return obj;
   },
 
-  create<I extends Exact<DeepPartial<GnoEventAttribute>, I>>(base?: I): GnoEventAttribute {
-    return GnoEventAttribute.fromPartial(base ?? ({} as any));
+  create<I extends Exact<DeepPartial<EventAttribute>, I>>(base?: I): EventAttribute {
+    return EventAttribute.fromPartial(base ?? ({} as any));
   },
-  fromPartial<I extends Exact<DeepPartial<GnoEventAttribute>, I>>(object: I): GnoEventAttribute {
-    const message = createBaseGnoEventAttribute();
+  fromPartial<I extends Exact<DeepPartial<EventAttribute>, I>>(object: I): EventAttribute {
+    const message = createBaseEventAttribute();
     message.key = object.key ?? '';
     message.value = object.value ?? '';
     return message;
@@ -302,7 +298,12 @@ export const StorageDepositEvent: MessageFns<StorageDepositEvent> = {
 };
 
 function createBaseStorageUnlockEvent(): StorageUnlockEvent {
-  return { bytes_delta: Long.ZERO, fee_refund: '', pkg_path: '' };
+  return {
+    bytes_delta: Long.ZERO,
+    fee_refund: '',
+    pkg_path: '',
+    refund_withheld: false,
+  };
 }
 
 export const StorageUnlockEvent: MessageFns<StorageUnlockEvent> = {
@@ -315,6 +316,9 @@ export const StorageUnlockEvent: MessageFns<StorageUnlockEvent> = {
     }
     if (message.pkg_path !== '') {
       writer.uint32(26).string(message.pkg_path);
+    }
+    if (message.refund_withheld !== false) {
+      writer.uint32(32).bool(message.refund_withheld);
     }
     return writer;
   },
@@ -350,6 +354,14 @@ export const StorageUnlockEvent: MessageFns<StorageUnlockEvent> = {
           message.pkg_path = reader.string();
           continue;
         }
+        case 4: {
+          if (tag !== 32) {
+            break;
+          }
+
+          message.refund_withheld = reader.bool();
+          continue;
+        }
       }
       if ((tag & 7) === 4 || tag === 0) {
         break;
@@ -364,6 +376,7 @@ export const StorageUnlockEvent: MessageFns<StorageUnlockEvent> = {
       bytes_delta: isSet(object.bytes_delta) ? Long.fromValue(object.bytes_delta) : Long.ZERO,
       fee_refund: isSet(object.fee_refund) ? globalThis.String(object.fee_refund) : '',
       pkg_path: isSet(object.pkg_path) ? globalThis.String(object.pkg_path) : '',
+      refund_withheld: isSet(object.refund_withheld) ? globalThis.Boolean(object.refund_withheld) : false,
     };
   },
 
@@ -378,6 +391,9 @@ export const StorageUnlockEvent: MessageFns<StorageUnlockEvent> = {
     if (message.pkg_path !== undefined) {
       obj.pkg_path = message.pkg_path;
     }
+    if (message.refund_withheld !== undefined) {
+      obj.refund_withheld = message.refund_withheld;
+    }
     return obj;
   },
 
@@ -390,6 +406,7 @@ export const StorageUnlockEvent: MessageFns<StorageUnlockEvent> = {
       object.bytes_delta !== undefined && object.bytes_delta !== null ? Long.fromValue(object.bytes_delta) : Long.ZERO;
     message.fee_refund = object.fee_refund ?? '';
     message.pkg_path = object.pkg_path ?? '';
+    message.refund_withheld = object.refund_withheld ?? false;
     return message;
   },
 };
@@ -411,7 +428,9 @@ export type DeepPartial<T> = T extends Builtin
 type KeysOfUnion<T> = T extends T ? keyof T : never;
 export type Exact<P, I extends P> = P extends Builtin
   ? P
-  : P & { [K in keyof P]: Exact<P[K], I[K]> } & { [K in Exclude<keyof I, KeysOfUnion<P>>]: never };
+  : P & { [K in keyof P]: Exact<P[K], I[K]> } & {
+      [K in Exclude<keyof I, KeysOfUnion<P>>]: never;
+    };
 
 function isSet(value: any): boolean {
   return value !== null && value !== undefined;
