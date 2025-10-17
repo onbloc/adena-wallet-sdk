@@ -31,6 +31,7 @@ export enum WalletResponseSuccessType {
   GET_ACCOUNT_SUCCESS = 'GET_ACCOUNT',
   GET_NETWORK_SUCCESS = 'GET_NETWORK',
   SIGN_SUCCESS = 'SIGN_TX',
+  SIGN_DOCUMENT_SUCCESS = 'SIGN_DOCUMENT',
   ADD_NETWORK_SUCCESS = 'ADD_NETWORK_SUCCESS',
   SWITCH_NETWORK_SUCCESS = 'SWITCH_NETWORK_SUCCESS',
   TRANSACTION_SUCCESS = 'TRANSACTION_SUCCESS',
@@ -45,6 +46,7 @@ export enum WalletResponseFailureType {
   NO_ACCOUNT = 'NO_ACCOUNT',
   TRANSACTION_FAILED = 'TRANSACTION_FAILED',
   SIGN_FAILED = 'SIGN_FAILED',
+  SIGN_DOCUMENT_FAILED = 'SIGN_DOCUMENT_FAILED',
   ALREADY_CONNECTED = 'ALREADY_CONNECTED',
   NETWORK_TIMEOUT = 'NETWORK_TIMEOUT',
   REDUNDANT_CHANGE_REQUEST = 'REDUNDANT_CHANGE_REQUEST',
@@ -58,6 +60,7 @@ export enum WalletResponseFailureType {
 export enum WalletResponseRejectType {
   TRANSACTION_REJECTED = 'TRANSACTION_REJECTED',
   SIGN_REJECTED = 'SIGN_REJECTED',
+  SIGN_DOCUMENT_REJECTED = 'SIGN_DOCUMENT_REJECTED',
   CONNECTION_REJECTED = 'CONNECTION_REJECTED',
   SWITCH_NETWORK_REJECTED = 'SWITCH_NETWORK_REJECTED',
   ADD_NETWORK_REJECTED = 'ADD_NETWORK_REJECTED',
@@ -70,6 +73,7 @@ export enum WalletResponseExecuteType {
   GET_NETWORK = 'GET_NETWORK',
   SIGN_AMINO = 'SIGN_AMINO',
   SIGN_TX = 'SIGN_TX',
+  SIGN_DOCUMENT = 'SIGN_DOCUMENT',
   ADD_NETWORK = 'ADD_NETWORK',
   SWITCH_NETWORK = 'SWITCH_NETWORK',
 }
@@ -100,6 +104,12 @@ const WalletSuccessMessageInfo: Record<
     code: 0,
     status: WalletResponseStatus.SUCCESS,
     type: WalletResponseSuccessType.SIGN_SUCCESS,
+    message: 'Signature hash has been successfully generated.',
+  },
+  SIGN_DOCUMENT: {
+    code: 0,
+    status: WalletResponseStatus.SUCCESS,
+    type: WalletResponseSuccessType.SIGN_DOCUMENT_SUCCESS,
     message: 'Signature hash has been successfully generated.',
   },
   ADD_NETWORK_SUCCESS: {
@@ -174,6 +184,12 @@ const WalletFailureMessageInfo: Record<
     type: WalletResponseFailureType.SIGN_FAILED,
     message: 'Adena could not generate the signature hash.',
   },
+  SIGN_DOCUMENT_FAILED: {
+    code: 4001,
+    status: WalletResponseStatus.FAILURE,
+    type: WalletResponseFailureType.SIGN_DOCUMENT_FAILED,
+    message: 'Adena could not generate the signature hash.',
+  },
   ALREADY_CONNECTED: {
     code: 4001,
     status: WalletResponseStatus.FAILURE,
@@ -240,6 +256,12 @@ const WalletRejectMessageInfo: Record<
     type: WalletResponseRejectType.SIGN_REJECTED,
     message: 'The signature has been rejected by the user.',
   },
+  SIGN_DOCUMENT_REJECTED: {
+    code: 4000,
+    status: WalletResponseStatus.FAILURE,
+    type: WalletResponseRejectType.SIGN_REJECTED,
+    message: 'The signature has been rejected by the user.',
+  },
   CONNECTION_REJECTED: {
     code: 4000,
     status: WalletResponseStatus.FAILURE,
@@ -299,6 +321,12 @@ const WalletExecuteMessageInfo: Record<
     status: WalletResponseStatus.SUCCESS,
     type: WalletResponseExecuteType.SIGN_TX,
     message: 'Sign Transaction',
+  },
+  SIGN_DOCUMENT: {
+    code: 0,
+    status: WalletResponseStatus.SUCCESS,
+    type: WalletResponseExecuteType.SIGN_DOCUMENT,
+    message: 'Sign Document',
   },
   ADD_NETWORK: {
     code: 0,
