@@ -6,6 +6,7 @@ import {
   AdenaGetNetwork,
   AdenaOnEvent,
   AdenaSignTx,
+  AdenaSignDocument,
   AdenaSwitchNetwork,
 } from '.';
 
@@ -24,6 +25,8 @@ export type AdenaWallet = {
 
   // Transactions
   SignTx: AdenaSignTx;
+
+  SignDocument: AdenaSignDocument;
 
   DoContract: AdenaDoContract;
 

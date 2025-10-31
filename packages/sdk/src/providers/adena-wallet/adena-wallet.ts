@@ -15,6 +15,8 @@ import {
   OnChangeAccountResponse,
   OnChangeNetworkOptions,
   OnChangeNetworkResponse,
+  SignDocumentOptions,
+  SignDocumentResponse,
   SignTransactionOptions,
   SignTransactionResponse,
   SwitchNetworkOptions,
@@ -90,6 +92,13 @@ export class AdenaWalletProvider implements WalletProvider {
   async signTransaction(options: SignTransactionOptions): Promise<SignTransactionResponse> {
     const adena = this.getAdena();
     const response = await adena.SignTx(mapTxToTransactionParams(options.tx));
+
+    return mapResponseByAdenaResponse(response, response.data);
+  }
+
+  async signDocument(options: SignDocumentOptions): Promise<SignDocumentResponse> {
+    const adena = this.getAdena();
+    const response = await adena.SignDocument(mapTxToTransactionParams(options.tx));
 
     return mapResponseByAdenaResponse(response, response.data);
   }
