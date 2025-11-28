@@ -32,6 +32,7 @@ export enum WalletResponseSuccessType {
   GET_NETWORK_SUCCESS = 'GET_NETWORK',
   SIGN_SUCCESS = 'SIGN_TX',
   SIGN_DOCUMENT_SUCCESS = 'SIGN_DOCUMENT',
+  CREATE_MULTISIG_DOCUMENT_SUCCESS = 'CREATE_MULTISIG_DOCUMENT',
   ADD_NETWORK_SUCCESS = 'ADD_NETWORK_SUCCESS',
   SWITCH_NETWORK_SUCCESS = 'SWITCH_NETWORK_SUCCESS',
   TRANSACTION_SUCCESS = 'TRANSACTION_SUCCESS',
@@ -47,6 +48,10 @@ export enum WalletResponseFailureType {
   TRANSACTION_FAILED = 'TRANSACTION_FAILED',
   SIGN_FAILED = 'SIGN_FAILED',
   SIGN_DOCUMENT_FAILED = 'SIGN_DOCUMENT_FAILED',
+  CREATE_MULTISIG_DOCUMENT_FAILED = 'CREATE_MULTISIG_DOCUMENT_FAILED',
+  INVALID_MULTISIG_SIGNERS = 'INVALID_MULTISIG_SIGNERS',
+  INVALID_MULTISIG_ADDRESS = 'INVALID_MULTISIG_ADDRESS',
+  INVALID_MULTISIG_THRESHOLD = 'INVALID_MULTISIG_THRESHOLD',
   ALREADY_CONNECTED = 'ALREADY_CONNECTED',
   NETWORK_TIMEOUT = 'NETWORK_TIMEOUT',
   REDUNDANT_CHANGE_REQUEST = 'REDUNDANT_CHANGE_REQUEST',
@@ -61,6 +66,7 @@ export enum WalletResponseRejectType {
   TRANSACTION_REJECTED = 'TRANSACTION_REJECTED',
   SIGN_REJECTED = 'SIGN_REJECTED',
   SIGN_DOCUMENT_REJECTED = 'SIGN_DOCUMENT_REJECTED',
+  CREATE_MULTISIG_DOCUMENT_REJECTED = 'CREATE_MULTISIG_DOCUMENT_REJECTED',
   CONNECTION_REJECTED = 'CONNECTION_REJECTED',
   SWITCH_NETWORK_REJECTED = 'SWITCH_NETWORK_REJECTED',
   ADD_NETWORK_REJECTED = 'ADD_NETWORK_REJECTED',
@@ -74,6 +80,7 @@ export enum WalletResponseExecuteType {
   SIGN_AMINO = 'SIGN_AMINO',
   SIGN_TX = 'SIGN_TX',
   SIGN_DOCUMENT = 'SIGN_DOCUMENT',
+  CREATE_MULTISIG_DOCUMENT = 'CREATE_MULTISIG_DOCUMENT',
   ADD_NETWORK = 'ADD_NETWORK',
   SWITCH_NETWORK = 'SWITCH_NETWORK',
 }
@@ -111,6 +118,12 @@ const WalletSuccessMessageInfo: Record<
     status: WalletResponseStatus.SUCCESS,
     type: WalletResponseSuccessType.SIGN_DOCUMENT_SUCCESS,
     message: 'Signature hash has been successfully generated.',
+  },
+  CREATE_MULTISIG_DOCUMENT: {
+    code: 0,
+    status: WalletResponseStatus.SUCCESS,
+    type: WalletResponseSuccessType.CREATE_MULTISIG_DOCUMENT_SUCCESS,
+    message: 'Multisig document has been successfully created.',
   },
   ADD_NETWORK_SUCCESS: {
     code: 0,
@@ -154,6 +167,24 @@ const WalletFailureMessageInfo: Record<
     type: WalletResponseFailureType.INVALID_FORMAT,
     message: 'The transaction is in an invalid format.',
   },
+  INVALID_MULTISIG_SIGNERS: {
+    code: 1003,
+    status: WalletResponseStatus.FAILURE,
+    type: WalletResponseFailureType.INVALID_MULTISIG_SIGNERS,
+    message: 'At least 2 signers are required for multisig.',
+  },
+  INVALID_MULTISIG_ADDRESS: {
+    code: 1004,
+    status: WalletResponseStatus.FAILURE,
+    type: WalletResponseFailureType.INVALID_MULTISIG_ADDRESS,
+    message: 'One or more signer addresses are invalid.',
+  },
+  INVALID_MULTISIG_THRESHOLD: {
+    code: 1005,
+    status: WalletResponseStatus.FAILURE,
+    type: WalletResponseFailureType.INVALID_MULTISIG_THRESHOLD,
+    message: 'Threshold must be between 1 and the number of signers.',
+  },
   WALLET_LOCKED: {
     code: 2000,
     status: WalletResponseStatus.FAILURE,
@@ -189,6 +220,12 @@ const WalletFailureMessageInfo: Record<
     status: WalletResponseStatus.FAILURE,
     type: WalletResponseFailureType.SIGN_DOCUMENT_FAILED,
     message: 'Adena could not generate the signature hash.',
+  },
+  CREATE_MULTISIG_DOCUMENT_FAILED: {
+    code: 4001,
+    status: WalletResponseStatus.FAILURE,
+    type: WalletResponseFailureType.CREATE_MULTISIG_DOCUMENT_FAILED,
+    message: 'Adena could not create the multisig document.',
   },
   ALREADY_CONNECTED: {
     code: 4001,
@@ -262,6 +299,12 @@ const WalletRejectMessageInfo: Record<
     type: WalletResponseRejectType.SIGN_REJECTED,
     message: 'The signature has been rejected by the user.',
   },
+  CREATE_MULTISIG_DOCUMENT_REJECTED: {
+    code: 4000,
+    status: WalletResponseStatus.FAILURE,
+    type: WalletResponseRejectType.CREATE_MULTISIG_DOCUMENT_REJECTED,
+    message: 'Creating multisig document has been rejected by the user.',
+  },
   CONNECTION_REJECTED: {
     code: 4000,
     status: WalletResponseStatus.FAILURE,
@@ -327,6 +370,12 @@ const WalletExecuteMessageInfo: Record<
     status: WalletResponseStatus.SUCCESS,
     type: WalletResponseExecuteType.SIGN_DOCUMENT,
     message: 'Sign Document',
+  },
+  CREATE_MULTISIG_DOCUMENT: {
+    code: 0,
+    status: WalletResponseStatus.SUCCESS,
+    type: WalletResponseExecuteType.CREATE_MULTISIG_DOCUMENT,
+    message: 'Create Multisig Document',
   },
   ADD_NETWORK: {
     code: 0,
