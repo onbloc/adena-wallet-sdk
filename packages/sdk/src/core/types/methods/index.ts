@@ -11,7 +11,6 @@ export * from './on-change-account.types';
 export * from './on-change-network.types';
 export * from './on-connection-change';
 export * from './sign-transaction.types';
-export * from './sign-document.types';
 export * from './switch-network.types';
 // multisig
 export * from './create-multisig-account.types';

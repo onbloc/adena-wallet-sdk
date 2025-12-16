@@ -16,8 +16,6 @@ import {
   SwitchNetworkResponse,
   SignTransactionOptions,
   SignTransactionResponse,
-  SignDocumentOptions,
-  SignDocumentResponse,
   CreateMultisigAccountOptions,
   CreateMultisigAccountResponse,
   CreateMultisigTransactionOptions,
@@ -81,17 +79,6 @@ export interface WalletProvider {
    * @returns {string} Encoded transaction
    */
   signTransaction: (options: SignTransactionOptions) => Promise<SignTransactionResponse>;
-
-  /**
-   * @async
-   * @param {ContractMessage[]} messages - Messages to send in the transaction
-   * @param {number} gasFee - Actual network fee to pay (in ugnot)
-   * @param {number} gasWanted - Gas limit (in ugnot)
-   * @param {string} memo - Transaction memo (tag)
-   * @returns {string} Encoded transaction
-   * @returns
-   */
-  signDocument?: (options: SignDocumentOptions) => Promise<SignDocumentResponse>;
 
   /**
    * Sign and broadcast a transaction crafted by a web-app
