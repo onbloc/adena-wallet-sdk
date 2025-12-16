@@ -6,3 +6,4 @@ export * from './global';
 export * from './network';
 export * from './transactions';
 export * from './documents';
+export * from './multisig';
