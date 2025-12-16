@@ -13,3 +13,8 @@ export * from './on-change-network';
 export * from './on-connection-change';
 export * from './sign-transaction';
 export * from './switch-network';
+// multisig
+export * from './create-multisig-account';
+export * from './create-multisig-transaction';
+export * from './sign-multisig-transaction';
+export * from './broadcast-multisig-transaction';

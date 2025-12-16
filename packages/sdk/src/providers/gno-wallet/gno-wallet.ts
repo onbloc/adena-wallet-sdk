@@ -14,14 +14,22 @@ import {
   AddEstablishResponse,
   AddNetworkOptions,
   AddNetworkResponse,
+  BroadcastMultisigTransactionOptions,
+  BroadcastMultisigTransactionResponse,
   BroadcastTransactionOptions,
   BroadcastTransactionResponse,
+  CreateMultisigAccountOptions,
+  CreateMultisigAccountResponse,
+  CreateMultisigTransactionOptions,
+  CreateMultisigTransactionResponse,
   GetAccountResponse,
   GetNetworkResponse,
   IsConnectedResponse,
   OnChangeAccountResponse,
   OnChangeNetworkOptions,
   OnChangeNetworkResponse,
+  SignMultisigTransactionOptions,
+  SignMultisigTransactionResponse,
   SignTransactionOptions,
   SignTransactionResponse,
   SwitchNetworkOptions,
@@ -198,6 +206,16 @@ export class GnoWalletProvider implements TM2WalletProvider {
     const transactionResult = await this.wallet!.sendTransaction(signedTransaction, transactionEndpoint);
     return makeResponseMessage(WalletResponseSuccessType.TRANSACTION_SUCCESS, transactionResult);
   }
+
+  createMultisigAccount: (options: CreateMultisigAccountOptions) => Promise<CreateMultisigAccountResponse>;
+
+  createMultisigTransaction: (options: CreateMultisigTransactionOptions) => Promise<CreateMultisigTransactionResponse>;
+
+  signMultisigTransaction: (options: SignMultisigTransactionOptions) => Promise<SignMultisigTransactionResponse>;
+
+  broadcastMultisigTransaction: (
+    options: BroadcastMultisigTransactionOptions
+  ) => Promise<BroadcastMultisigTransactionResponse>;
 
   onChangeAccount(): OnChangeAccountResponse {
     throw new Error('not supported');
