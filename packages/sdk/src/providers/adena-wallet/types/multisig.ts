@@ -1,3 +1,4 @@
+/* eslint-disable */
 import { BroadcastTxCommitResult } from '@gnolang/tm2-js-client';
 
 import { AdenaResponse } from './common';
