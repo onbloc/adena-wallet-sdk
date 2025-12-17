@@ -59,7 +59,9 @@ export type CreateMultisigTransactionParams = {
   chain_id: string;
   msgs: any[];
   fee: Fee;
-  memo: string;
+  memo?: string;
+  accountNumber?: string;
+  sequence?: string;
 };
 
 export type MultisigTransactionResponseTx = {
@@ -77,7 +79,6 @@ export type CreateMultisigTransactionResponseData = {
   chainId: string;
   accountNumber: string;
   sequence: string;
-  multisigSignatures?: Signature[];
 };
 
 enum CreateMultisigTransactionResponseType {
@@ -97,8 +98,11 @@ export type AdenaCreateMultisigTransaction = (
  * SignMultisigTransaction
  */
 export type SignMultisigTransactionResponseData = {
-  signedDocument: CreateMultisigTransactionResponseData;
-  addedSignature: Signature;
+  result: {
+    multisigDocument: CreateMultisigTransactionResponseData;
+    multisigSignatures: Signature[];
+  };
+  signature: Signature;
 };
 
 enum SignMultisigTransactionResponseType {
@@ -111,7 +115,8 @@ export type SignMultisigTransactionResponse = AdenaResponse<
 >;
 
 export type AdenaSignMultisigTransaction = (
-  tx: CreateMultisigTransactionResponseData
+  multisigDocument: CreateMultisigTransactionResponseData,
+  multisigSignatures?: Signature[]
 ) => Promise<SignMultisigTransactionResponse>;
 
 /**
@@ -127,5 +132,6 @@ export type BroadcastMultisigTransactionResopnse = AdenaResponse<
 >;
 
 export type AdenaBroadcastMultisigTransaction = (
-  tx: CreateMultisigTransactionResponseData
+  multisigDocument: CreateMultisigTransactionResponseData,
+  multisigSignatures?: Signature[]
 ) => Promise<BroadcastMultisigTransactionResopnse>;
