@@ -11,18 +11,18 @@ type Fee = {
   gas: string;
 };
 
-type Signature = {
+type MultisigConfig = {
+  signers: string[];
+  threshold: number;
+  noSort: boolean;
+};
+
+export type MultisigSignature = {
   pub_key: {
     type: string;
     value: string;
   };
   signature: string;
-};
-
-type MultisigConfig = {
-  signers: string[];
-  threshold: number;
-  noSort: boolean;
 };
 
 /**
@@ -100,9 +100,9 @@ export type AdenaCreateMultisigTransaction = (
 export type SignMultisigTransactionResponseData = {
   result: {
     multisigDocument: CreateMultisigTransactionResponseData;
-    multisigSignatures: Signature[];
+    multisigSignatures: MultisigSignature[];
   };
-  signature: Signature;
+  signature: MultisigSignature;
 };
 
 enum SignMultisigTransactionResponseType {
@@ -116,7 +116,7 @@ export type SignMultisigTransactionResponse = AdenaResponse<
 
 export type AdenaSignMultisigTransaction = (
   multisigDocument: CreateMultisigTransactionResponseData,
-  multisigSignatures?: Signature[]
+  multisigSignatures?: MultisigSignature[]
 ) => Promise<SignMultisigTransactionResponse>;
 
 /**
@@ -133,5 +133,5 @@ export type BroadcastMultisigTransactionResopnse = AdenaResponse<
 
 export type AdenaBroadcastMultisigTransaction = (
   multisigDocument: CreateMultisigTransactionResponseData,
-  multisigSignatures?: Signature[]
+  multisigSignatures: MultisigSignature[]
 ) => Promise<BroadcastMultisigTransactionResopnse>;
