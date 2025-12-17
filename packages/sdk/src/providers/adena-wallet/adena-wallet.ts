@@ -128,7 +128,9 @@ export class AdenaWalletProvider implements WalletProvider {
 
   async signMultisigTransaction(options: SignMultisigTransactionOptions): Promise<SignMultisigTransactionResponse> {
     const adena = this.getAdena();
-    const response = await adena.SignMultisigTransaction(options);
+
+    const { multisigDocument, multisigSignatures } = options;
+    const response = await adena.SignMultisigTransaction(multisigDocument, multisigSignatures);
 
     return mapResponseByAdenaResponse(response, response.data);
   }
@@ -137,7 +139,8 @@ export class AdenaWalletProvider implements WalletProvider {
     options: BroadcastMultisigTransactionOptions
   ): Promise<BroadcastMultisigTransactionResponse> {
     const adena = this.getAdena();
-    const response = await adena.BroadcastMultisigTransaction(options);
+    const { multisigDocument, multisigSignatures } = options;
+    const response = await adena.BroadcastMultisigTransaction(multisigDocument, multisigSignatures);
 
     return mapResponseByAdenaResponse(response, response.data);
   }
