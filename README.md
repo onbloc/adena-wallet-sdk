@@ -282,6 +282,8 @@ await adena.CreateMultisigAccount(multisigAccountParams);
 
 Creates a multisig transaction that can be signed by multiple signers. Returns a multisig document that should be shared with all signers.
 
+> Note: This transaction must be created from a multisig account. Make sure you have switched to the multisig account in Adena wallet before calling this method.
+
 **Parameters:**
 
 - chain_id: Chain identifier
@@ -369,6 +371,8 @@ const signer3Response = await adena.SignMultisigTransaction(doc3, sigs3);
 ### `broadcastMultisigTransaction`
 
 Broadcasts a multisig transaction once enough signatures have been collected to meet the threshold requirement.
+
+> Important: This method must be called from the same multisig account that created the transaction. Switch to the multisig account in Adena wallet before broadcasting.
 
 **Parameters:**
 
