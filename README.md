@@ -250,6 +250,144 @@ adenaSDK.onChangeNetwork({
 });
 ```
 
+## Multisig Functions
+
+### `createMultisigAccount`
+
+Creates a new multisig account with specified signers and threshold.
+
+**Parameters:**
+
+- signers: Array of signer addresses
+- threshold: Minimum number of signatures required
+- noSort (Optional): Whether to skip sorting signers
+
+**Example:**
+
+```typescript
+const multisigAccountParams = {
+  signers: [
+    "g1signer1address...",
+    "g1signer2address...",
+    "g1signer3address...",
+  ],
+  threshold: 2,
+  noSort: true,
+};
+
+await adena.CreateMultisigAccount(multisigAccountParams);
+```
+
+### `createMultisigTransaction`
+
+Creates a multisig transaction that can be signed by multiple signers. Returns a multisig document that should be shared with all signers.
+
+> Note: This transaction must be created from a multisig account. Make sure you have switched to the multisig account in Adena wallet before calling this method.
+
+**Parameters:**
+
+- chain_id: Chain identifier
+- msgs: Array of transaction messages
+- fee: Transaction fee configuration
+- memo (Optional): Transaction memo
+
+**Example:**
+
+```typescript
+const multisigTxParams = {
+  chain_id: "staging",
+  msgs: [
+    {
+      type: "/vm.m_call",
+      value: {
+        caller: "g1multisigaddress...",
+        send: "",
+        pkg_path: "gno.land/r/gnoland/wugnot",
+        func: "Approve",
+        args: ["g1recipient...", "1000"],
+      },
+    },
+  ],
+  fee: {
+    amount: [
+      {
+        amount: "6113",
+        denom: "ugnot",
+      },
+    ],
+    gas: "6112955",
+  },
+  memo: "",
+};
+
+const response = await adena.CreateMultisigTransaction(multisigTxParams);
+
+const multisigDocument = response.data;
+
+// response.data structure:
+// {
+//   tx: {
+//     msgs: [...],
+//     fee: { gas_wanted: "6112955", gas_fee: "6113ugnot" },
+//     signatures: null,
+//     memo: ""
+//   },
+//   chainId: "staging",
+//   accountNumber: "5315",
+//   sequence: "2"
+// }
+```
+
+### `signMultisigTransaction`
+
+Signs a multisig transaction with the current account. This method adds your signature to an existing multisig transaction document.
+
+**Parameters:**
+
+- multisigDocument: from createMultisigTransaction or previous signer's result
+- multisigSignatures (Optional): only for 2nd signer onwards, from previous signer's result
+
+**Example:**
+
+```typescript
+// Signer 1: Received multisigDocument from createMultisigTransaction
+const signer1Response = await adena.SignMultisigTransaction(multisigDocument);
+
+// Signer 2: Received result from Signer 1
+const { multisigDocument, multisigSignatures } = signer1Response.result;
+
+const signer2Response = await adena.SignMultisigTransaction(
+  multisigDocument,
+  multisigSignatures
+);
+
+// Signer 3: Received result from Signer 2
+const { multisigDocument: doc3, multisigSignatures: sigs3 } =
+  signer2Response.result;
+
+const signer3Response = await adena.SignMultisigTransaction(doc3, sigs3);
+```
+
+### `broadcastMultisigTransaction`
+
+Broadcasts a multisig transaction once enough signatures have been collected to meet the threshold requirement.
+
+> Important: This method must be called from the same multisig account that created the transaction. Switch to the multisig account in Adena wallet before broadcasting.
+
+**Parameters:**
+
+- multisigDocument: from the final signer's result
+- multisigSignatures: from the final signer's result
+
+**Example:**
+
+```typescript
+// Received result from the final signer (when threshold is met)
+const { multisigDocument, multisigSignatures } = finalSignerResponse.result;
+
+await adena.BroadcastMultisigTransaction(multisigDocument, multisigSignatures);
+```
+
 ## Utility Functions
 
 ### `TransactionBuilder`
