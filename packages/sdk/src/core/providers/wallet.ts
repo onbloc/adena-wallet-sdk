@@ -14,8 +14,17 @@ import {
   OnChangeNetworkResponse,
   SwitchNetworkOptions,
   SwitchNetworkResponse,
+  SignTransactionOptions,
+  SignTransactionResponse,
+  CreateMultisigAccountOptions,
+  CreateMultisigAccountResponse,
+  CreateMultisigTransactionOptions,
+  CreateMultisigTransactionResponse,
+  SignMultisigTransactionOptions,
+  SignMultisigTransactionResponse,
+  BroadcastMultisigTransactionOptions,
+  BroadcastMultisigTransactionResponse,
 } from '../types/methods';
-import { SignTransactionOptions, SignTransactionResponse } from '../types/methods/sign-transaction.types';
 
 export interface WalletProvider {
   isConnected: () => Promise<IsConnectedResponse>;
@@ -97,4 +106,42 @@ export interface WalletProvider {
    * @returns Nothing, throws an error if it fails
    */
   onChangeNetwork: (options: OnChangeNetworkOptions) => OnChangeNetworkResponse;
+
+  /**
+   * Create a multisig account with specified signers and threshold
+   * @async
+   * @param {CreateMultisigAccountOptions} options - Configuration with signers array, threshold number, and optional noSort flag
+   * @returns {Promise<CreateMultisigAccountResponse>} Created multisig account details
+   * @throws {Error} If account creation fails
+   */
+  createMultisigAccount: (options: CreateMultisigAccountOptions) => Promise<CreateMultisigAccountResponse>;
+
+  /**
+   * Create a multisig transaction with specified messages and fee
+   * @async
+   * @param {CreateMultisigTransactionOptions} options - Configuration with chain_id, messages array, fee, and memo
+   * @returns {Promise<CreateMultisigTransactionResponse>} Created multisig transaction details
+   * @throws {Error} If transaction creation fails
+   */
+  createMultisigTransaction: (options: CreateMultisigTransactionOptions) => Promise<CreateMultisigTransactionResponse>;
+
+  /**
+   * Sign a multisig transaction
+   * @async
+   * @param {SignMultisigTransactionOptions} options - Transaction signing configuration including tx, chainId, accountNumber, sequence, and optional existing signatures
+   * @returns {Promise<SignMultisigTransactionResponse>} Signed multisig transaction details
+   * @throws {Error} If transaction signing fails
+   */
+  signMultisigTransaction: (options: SignMultisigTransactionOptions) => Promise<SignMultisigTransactionResponse>;
+
+  /**
+   * Broadcast a signed multisig transaction to the network
+   * @async
+   * @param {BroadcastMultisigTransactionOptions} options - Signed transaction document including tx, chainId, accountNumber, sequence, and multisig signatures
+   * @returns {Promise<BroadcastMultisigTransactionResponse>} Broadcast result with transaction hash and status
+   * @throws {Error} If transaction broadcast fails
+   */
+  broadcastMultisigTransaction: (
+    options: BroadcastMultisigTransactionOptions
+  ) => Promise<BroadcastMultisigTransactionResponse>;
 }

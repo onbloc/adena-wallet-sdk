@@ -16,6 +16,10 @@ import {
   onConnectionChange,
   signTransaction,
   switchNetwork,
+  createMultisigAccount,
+  createMultisigTransaction,
+  signMultisigTransaction,
+  broadcastMultisigTransaction,
 } from '../methods';
 import { WalletProvider } from '../providers';
 import { SDKConfigure } from '../types';
@@ -24,8 +28,14 @@ import {
   AddEstablishResponse,
   AddNetworkOptions,
   AddNetworkResponse,
+  BroadcastMultisigTransactionOptions,
+  BroadcastMultisigTransactionResponse,
   BroadcastTransactionOptions,
   BroadcastTransactionResponse,
+  CreateMultisigAccountOptions,
+  CreateMultisigAccountResponse,
+  CreateMultisigTransactionOptions,
+  CreateMultisigTransactionResponse,
   GetAccountResponse,
   IsConnectedResponse,
   OffConnectionChangeOptions,
@@ -36,6 +46,8 @@ import {
   OnChangeNetworkResponse,
   OnConnectionChangeOptions,
   OnConnectionChangeResponse,
+  SignMultisigTransactionOptions,
+  SignMultisigTransactionResponse,
   SignTransactionOptions,
   SignTransactionResponse,
   SwitchNetworkOptions,
@@ -174,6 +186,24 @@ export class AdenaSDK {
    */
   broadcastTransaction(options: BroadcastTransactionOptions): Promise<BroadcastTransactionResponse> {
     return broadcastTransaction(this.walletProvider, options);
+  }
+
+  createMultisigAccount(options: CreateMultisigAccountOptions): Promise<CreateMultisigAccountResponse> {
+    return createMultisigAccount(this.walletProvider, options);
+  }
+
+  createMultisigTransaction(options: CreateMultisigTransactionOptions): Promise<CreateMultisigTransactionResponse> {
+    return createMultisigTransaction(this.walletProvider, options);
+  }
+
+  signMultisigTransaction(options: SignMultisigTransactionOptions): Promise<SignMultisigTransactionResponse> {
+    return signMultisigTransaction(this.walletProvider, options);
+  }
+
+  broadcastMultisigTransaction(
+    options: BroadcastMultisigTransactionOptions
+  ): Promise<BroadcastMultisigTransactionResponse> {
+    return broadcastMultisigTransaction(this.walletProvider, options);
   }
 
   /**

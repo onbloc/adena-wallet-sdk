@@ -22,6 +22,18 @@ export const mockWalletProvider: jest.Mocked<WalletProvider> = {
   addNetwork: jest.fn().mockResolvedValue(makeResponseMessage(WalletResponseSuccessType.ADD_NETWORK_SUCCESS)),
   signTransaction: jest.fn().mockResolvedValue(makeResponseMessage(WalletResponseSuccessType.SIGN_SUCCESS)),
   broadcastTransaction: jest.fn().mockResolvedValue(makeResponseMessage(WalletResponseSuccessType.TRANSACTION_SUCCESS)),
+  createMultisigAccount: jest
+    .fn()
+    .mockResolvedValue(makeResponseMessage(WalletResponseSuccessType.CREATE_MULTISIG_ACCOUNT_SUCCESS)),
+  createMultisigTransaction: jest
+    .fn()
+    .mockResolvedValue(makeResponseMessage(WalletResponseSuccessType.CREATE_MULTISIG_TRANSACTION_SUCCESS)),
+  signMultisigTransaction: jest
+    .fn()
+    .mockResolvedValue(makeResponseMessage(WalletResponseSuccessType.SIGN_MULTISIG_TRANSACTION_SUCCESS)),
+  broadcastMultisigTransaction: jest
+    .fn()
+    .mockResolvedValue(makeResponseMessage(WalletResponseSuccessType.BROADCAST_MULTISIG_TRANSACTION_SUCCESS)),
   onChangeAccount: jest.fn().mockImplementation(() => {
     return;
   }),

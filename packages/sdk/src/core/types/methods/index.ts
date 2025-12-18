@@ -12,3 +12,8 @@ export * from './on-change-network.types';
 export * from './on-connection-change';
 export * from './sign-transaction.types';
 export * from './switch-network.types';
+// multisig
+export * from './create-multisig-account.types';
+export * from './create-multisig-transaction.types';
+export * from './sign-multisig-transaction.types';
+export * from './broadcast-multisig-transaction.types';

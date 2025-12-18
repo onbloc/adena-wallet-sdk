@@ -6,8 +6,14 @@ import {
   AddEstablishResponse,
   AddNetworkOptions,
   AddNetworkResponse,
+  BroadcastMultisigTransactionOptions,
+  BroadcastMultisigTransactionResponse,
   BroadcastTransactionOptions,
   BroadcastTransactionResponse,
+  CreateMultisigAccountOptions,
+  CreateMultisigAccountResponse,
+  CreateMultisigTransactionOptions,
+  CreateMultisigTransactionResponse,
   GetAccountResponse,
   GetNetworkResponse,
   IsConnectedResponse,
@@ -15,6 +21,8 @@ import {
   OnChangeAccountResponse,
   OnChangeNetworkOptions,
   OnChangeNetworkResponse,
+  SignMultisigTransactionOptions,
+  SignMultisigTransactionResponse,
   SignTransactionOptions,
   SignTransactionResponse,
   SwitchNetworkOptions,
@@ -100,6 +108,41 @@ export class AdenaWalletProvider implements WalletProvider {
     const transactionResult = response.data;
 
     return mapResponseByAdenaResponse(response, transactionResult);
+  }
+
+  async createMultisigAccount(options: CreateMultisigAccountOptions): Promise<CreateMultisigAccountResponse> {
+    const adena = this.getAdena();
+    const response = await adena.CreateMultisigAccount(options);
+
+    return mapResponseByAdenaResponse(response, response.data);
+  }
+
+  async createMultisigTransaction(
+    options: CreateMultisigTransactionOptions
+  ): Promise<CreateMultisigTransactionResponse> {
+    const adena = this.getAdena();
+    const response = await adena.CreateMultisigTransaction(options);
+
+    return mapResponseByAdenaResponse(response, response.data);
+  }
+
+  async signMultisigTransaction(options: SignMultisigTransactionOptions): Promise<SignMultisigTransactionResponse> {
+    const adena = this.getAdena();
+
+    const { multisigDocument, multisigSignatures } = options;
+    const response = await adena.SignMultisigTransaction(multisigDocument, multisigSignatures);
+
+    return mapResponseByAdenaResponse(response, response.data);
+  }
+
+  async broadcastMultisigTransaction(
+    options: BroadcastMultisigTransactionOptions
+  ): Promise<BroadcastMultisigTransactionResponse> {
+    const adena = this.getAdena();
+    const { multisigDocument, multisigSignatures } = options;
+    const response = await adena.BroadcastMultisigTransaction(multisigDocument, multisigSignatures);
+
+    return mapResponseByAdenaResponse(response, response.data);
   }
 
   onChangeAccount(options: OnChangeAccountOptions): OnChangeAccountResponse {

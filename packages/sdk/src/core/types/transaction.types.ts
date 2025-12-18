@@ -38,11 +38,11 @@ export interface TransactionData {
 }
 
 export interface SignTransactionData {
-  document: SignDocument;
+  document: SignedDocument;
   signature: Signature;
 }
 
-export interface SignDocument {
+export interface SignedDocument {
   msgs: TransactionMessage[];
   fee: {
     amount: { amount: string; denom: string }[];
@@ -63,6 +63,10 @@ export interface Signature {
 }
 
 export interface SingTransaction {
+  encodedTransaction: string;
+}
+
+export interface SignDocument {
   encodedTransaction: string;
 }
 
