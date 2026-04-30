@@ -91,6 +91,11 @@ export enum WalletResponseExecuteType {
   BROADCAST_MULTISIG_TRANSACTION = 'BROADCAST_MULTISIG_TRANSACTION',
   ADD_NETWORK = 'ADD_NETWORK',
   SWITCH_NETWORK = 'SWITCH_NETWORK',
+  ENABLE_COSMOS = 'ENABLE_COSMOS',
+  GET_COSMOS_KEY = 'GET_COSMOS_KEY',
+  SIGN_COSMOS_AMINO = 'SIGN_COSMOS_AMINO',
+  SIGN_COSMOS_DIRECT = 'SIGN_COSMOS_DIRECT',
+  SEND_COSMOS_TX = 'SEND_COSMOS_TX',
 }
 
 const WalletSuccessMessageInfo: Record<
@@ -444,6 +449,36 @@ const WalletExecuteMessageInfo: Record<
     status: WalletResponseStatus.SUCCESS,
     type: WalletResponseExecuteType.SWITCH_NETWORK,
     message: 'Switch Network',
+  },
+  ENABLE_COSMOS: {
+    code: 0,
+    status: WalletResponseStatus.SUCCESS,
+    type: WalletResponseExecuteType.ENABLE_COSMOS,
+    message: 'Enable Cosmos',
+  },
+  GET_COSMOS_KEY: {
+    code: 0,
+    status: WalletResponseStatus.SUCCESS,
+    type: WalletResponseExecuteType.GET_COSMOS_KEY,
+    message: 'Get Cosmos Key',
+  },
+  SIGN_COSMOS_AMINO: {
+    code: 0,
+    status: WalletResponseStatus.SUCCESS,
+    type: WalletResponseExecuteType.SIGN_COSMOS_AMINO,
+    message: 'Sign Cosmos Amino',
+  },
+  SIGN_COSMOS_DIRECT: {
+    code: 0,
+    status: WalletResponseStatus.SUCCESS,
+    type: WalletResponseExecuteType.SIGN_COSMOS_DIRECT,
+    message: 'Sign Cosmos Direct',
+  },
+  SEND_COSMOS_TX: {
+    code: 0,
+    status: WalletResponseStatus.SUCCESS,
+    type: WalletResponseExecuteType.SEND_COSMOS_TX,
+    message: 'Send Cosmos Transaction',
   },
 } as const;
 

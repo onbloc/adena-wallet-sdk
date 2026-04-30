@@ -26,6 +26,36 @@ describe('addEstablish', () => {
     expect(response).toEqual(mockResponse);
   });
 
+  it('should forward chainIds array when provided for multi-chain establish', async () => {
+    const mockResponse: AddEstablishResponse = addEstablishSuccessMock;
+    mockWalletProvider.addEstablish.mockResolvedValue(mockResponse);
+
+    const multiOptions: AddEstablishOptions = {
+      siteName: 'Test Site',
+      chainIds: ['atomone-1', 'portal-loop'],
+    };
+
+    const response = await addEstablish(mockWalletProvider, multiOptions);
+
+    expect(mockWalletProvider.addEstablish).toHaveBeenCalledWith(multiOptions);
+    expect(response).toEqual(mockResponse);
+  });
+
+  it('should forward a single string chainId for single-chain establish', async () => {
+    const mockResponse: AddEstablishResponse = addEstablishSuccessMock;
+    mockWalletProvider.addEstablish.mockResolvedValue(mockResponse);
+
+    const singleOptions: AddEstablishOptions = {
+      siteName: 'Test Site',
+      chainIds: 'atomone-1',
+    };
+
+    const response = await addEstablish(mockWalletProvider, singleOptions);
+
+    expect(mockWalletProvider.addEstablish).toHaveBeenCalledWith(singleOptions);
+    expect(response).toEqual(mockResponse);
+  });
+
   it('should handle failure response', async () => {
     const mockResponse: AddEstablishResponse = addEstablishFailureMock;
     mockWalletProvider.addEstablish.mockResolvedValue(mockResponse);

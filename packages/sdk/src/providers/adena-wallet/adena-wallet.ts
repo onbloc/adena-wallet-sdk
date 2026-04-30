@@ -53,7 +53,7 @@ export class AdenaWalletProvider implements WalletProvider {
   async addEstablish(options: AddEstablishOptions): Promise<AddEstablishResponse> {
     const adena = this.getAdena();
     const name = options.siteName || '';
-    const response = await adena.AddEstablish(name);
+    const response = await adena.AddEstablish(name, options.chainIds);
     const succeed =
       isSuccessType(response.type) || response.type === WalletResponseFailureType.ALREADY_CONNECTED.toString();
 
