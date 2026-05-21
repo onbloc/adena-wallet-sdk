@@ -1,6 +1,7 @@
 import {
   AdenaAddEstablish,
   AdenaAddNetwork,
+  AdenaCosmos,
   AdenaDoContract,
   AdenaGetAccount,
   AdenaGetNetwork,
@@ -45,4 +46,7 @@ export type AdenaWallet = {
 
   // Events
   On: AdenaOnEvent;
+
+  // Cosmos sub-namespace (optional — present when runtime supports it)
+  cosmos?: AdenaCosmos;
 };

@@ -7,7 +7,14 @@ export enum AddEstablishResponseType {
 
 export type AddEstablishResponse = AdenaResponse<AddEstablishResponseType, Record<string, never>>;
 
-export type AdenaAddEstablish = (name: string) => Promise<AddEstablishResponse>;
+/**
+ * Single approval to register the dApp with the wallet. The optional second
+ * argument accepts a chainId or list of chainIds across supported chainGroups
+ * (Gno + AtomOne today) so a dApp can request multi-chain access in one
+ * popup. Omitting it preserves the legacy "approve current chainGroup"
+ * behavior.
+ */
+export type AdenaAddEstablish = (name: string, chainIds?: string | string[]) => Promise<AddEstablishResponse>;
 
 enum GetAccountResponseType {
   GET_ACCOUNT = 'GET_ACCOUNT',
