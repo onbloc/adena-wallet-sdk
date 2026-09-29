@@ -28,9 +28,12 @@ yarn add @adena-wallet/sdk
 Here is a basic example of how to use the SDK:
 
 ```
-import { AdenaSDK, WalletProvider } from '@adena-wallet/sdk';
+import { AdenaSDK, AdenaWalletProvider } from '@adena-wallet/sdk';
 
-const walletProvider = new WalletProvider();
+// `WalletProvider` is the interface; pass a concrete provider —
+// `AdenaWalletProvider` for the extension, `GnoWalletProvider` /
+// `GnoSocialWalletProvider` for a locally held key.
+const walletProvider = new AdenaWalletProvider();
 const adenaSDK = new AdenaSDK(walletProvider);
 
 // Connect to the wallet
