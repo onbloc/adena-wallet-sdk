@@ -139,13 +139,14 @@ adenaSDK.getAccount().then((account) => {
 
 ### `switchNetwork`
 
-Switches the wallet to a different network.
+Switches the wallet to a different network. With `GnoWalletProvider`, an unreachable RPC returns
+`NETWORK_TIMEOUT` and leaves the previously connected network active.
 
 **Example:**
 
 ```
-adenaSDK.switchNetwork({ chainId: 'new-chain-id' }).then(() => {
-  console.log('Network switched');
+adenaSDK.switchNetwork({ chainId: 'new-chain-id' }).then((response) => {
+  console.log('Network switch:', response.status, response.type);
 });
 ```
 

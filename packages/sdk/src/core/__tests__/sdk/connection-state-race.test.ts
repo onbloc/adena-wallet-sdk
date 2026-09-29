@@ -123,4 +123,36 @@ describe('AdenaSDK connection state under a connect/switch race', () => {
     const network = await sdk.getNetwork();
     expect(network.data?.chainId).toBe(networkA.chainId);
   });
+
+  it('ignores an obsolete reconnect failure after a newer switch succeeds', async () => {
+    const { resolve: resolvers, reject: rejecters } = deferProviders();
+
+    const reconnecting = sdk.connectWallet();
+    const switching = sdk.switchNetwork({ chainId: networkB.chainId });
+
+    resolvers[networkB.rpcUrl]({ rpcUrl: networkB.rpcUrl });
+    await switching;
+    rejecters[networkA.rpcUrl](new Error('old A endpoint refused'));
+    await reconnecting;
+
+    expect(connected).toEqual({ rpcUrl: networkB.rpcUrl });
+    expect(sdk.getConnectionState()).toBe(ConnectionState.CONNECTED);
+    expect((await sdk.getNetwork()).data?.chainId).toBe(networkB.chainId);
+  });
+
+  it('waits for the newer switch when the obsolete reconnect rejects first', async () => {
+    const { resolve: resolvers, reject: rejecters } = deferProviders();
+
+    const reconnecting = sdk.connectWallet();
+    const switching = sdk.switchNetwork({ chainId: networkB.chainId });
+
+    rejecters[networkA.rpcUrl](new Error('old A endpoint refused'));
+    await flush();
+    resolvers[networkB.rpcUrl]({ rpcUrl: networkB.rpcUrl });
+    await Promise.all([reconnecting, switching]);
+
+    expect(connected).toEqual({ rpcUrl: networkB.rpcUrl });
+    expect(sdk.getConnectionState()).toBe(ConnectionState.CONNECTED);
+    expect((await sdk.getNetwork()).data?.chainId).toBe(networkB.chainId);
+  });
 });

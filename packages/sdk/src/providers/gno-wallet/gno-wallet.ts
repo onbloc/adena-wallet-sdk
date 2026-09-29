@@ -299,24 +299,17 @@ export class GnoWalletProvider implements TM2WalletProvider {
       if (this.pendingNetworkRequest === request) {
         this.pendingNetworkRequest = null;
         this.pendingConnection = null;
+        throw error;
       }
-      throw error;
+      // This factory is obsolete. Its failure cannot change the connection
+      // established (or retained) by the attempt that took over.
+      return this.supersedingConnectionOutcome();
     }
 
     if (this.pendingNetworkRequest !== request || !this.wallet) {
       // A newer attempt took over, or `disconnect()` landed while the factory
-      // was in flight. Either way this provider is stale: drop it rather than
-      // making it the active one, and answer the question the caller actually
-      // asked — is the wallet connected? `pendingConnection` always belongs to
-      // a later attempt here, so awaiting it cannot wait on this one.
-      const winner = this.pendingConnection;
-      if (!winner) {
-        return this.hasActiveProvider;
-      }
-
-      // When the attempt that took over fails, whatever was installed before
-      // it is still the active provider, so the wallet is still connected.
-      return winner.then((connected) => connected || this.hasActiveProvider);
+      // was in flight. Drop this provider rather than installing it.
+      return this.supersedingConnectionOutcome();
     }
     this.pendingNetworkRequest = null;
 
@@ -326,6 +319,16 @@ export class GnoWalletProvider implements TM2WalletProvider {
     this.selectNetwork(network);
 
     return true;
+  }
+
+  private supersedingConnectionOutcome(): boolean | Promise<boolean> {
+    const winner = this.pendingConnection;
+    if (!winner) {
+      return this.hasActiveProvider;
+    }
+
+    // A failed newer attempt leaves any previously installed provider active.
+    return winner.then((connected) => connected || this.hasActiveProvider);
   }
 
   private selectNetwork(network: NetworkInfo | null): void {
