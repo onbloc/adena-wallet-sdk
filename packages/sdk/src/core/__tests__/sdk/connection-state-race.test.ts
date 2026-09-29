@@ -5,7 +5,7 @@ import { defineGlobalMock } from '../../__mocks__/mock-global';
 import { ConnectionState } from '../../connection';
 import { GNO_ADDRESS_PREFIX } from '../../constants/chains.constant';
 import { AdenaSDK } from '../../sdk';
-import { NetworkInfo } from '../../types';
+import { NetworkInfo, WalletResponseFailureType } from '../../types';
 
 jest.mock('@gnolang/tm2-js-client', () => ({
   ...jest.requireActual('@gnolang/tm2-js-client'),
@@ -64,14 +64,25 @@ describe('AdenaSDK connection state under a connect/switch race', () => {
     expect(sdk.getConnectionState()).toBe(ConnectionState.CONNECTED);
   });
 
-  it('stays connected when a superseded connect resolves before the switch', async () => {
-    const resolvers: Record<string, (value: unknown) => void> = {};
+  /** Hands back a resolver and a rejecter per endpoint. */
+  const deferProviders = (): {
+    resolve: Record<string, (value: unknown) => void>;
+    reject: Record<string, (reason: unknown) => void>;
+  } => {
+    const resolve: Record<string, (value: unknown) => void> = {};
+    const reject: Record<string, (reason: unknown) => void> = {};
     createMock.mockImplementation(
       (rpcUrl: string) =>
-        new Promise((resolve) => {
-          resolvers[rpcUrl] = resolve;
+        new Promise((res, rej) => {
+          resolve[rpcUrl] = res;
+          reject[rpcUrl] = rej;
         })
     );
+    return { resolve, reject };
+  };
+
+  it('stays connected when a superseded connect resolves before the switch', async () => {
+    const { resolve: resolvers } = deferProviders();
 
     const reconnecting = sdk.connectWallet();
     const switching = sdk.switchNetwork({ chainId: networkB.chainId });
@@ -88,5 +99,28 @@ describe('AdenaSDK connection state under a connect/switch race', () => {
     // Provider methods stay reachable, and report the network B installed.
     const network = await sdk.getNetwork();
     expect(network.data?.chainId).toBe(networkB.chainId);
+  });
+
+  it('stays connected when the winning switch fails and the old provider survives', async () => {
+    const { resolve: resolvers, reject: rejecters } = deferProviders();
+
+    const reconnecting = sdk.connectWallet();
+    const switching = sdk.switchNetwork({ chainId: networkB.chainId });
+
+    // The older connect for A resolves, then the switch to B is refused.
+    resolvers[networkA.rpcUrl]({ rpcUrl: networkA.rpcUrl });
+    await flush();
+    rejecters[networkB.rpcUrl](new Error('connect ECONNREFUSED 127.0.0.1:26657'));
+
+    const response = await switching;
+    await reconnecting;
+
+    expect(response.type).toBe(WalletResponseFailureType.NETWORK_TIMEOUT);
+    // B never connected, so the wallet is still on the provider it had.
+    expect(connected).toEqual({ rpcUrl: networkA.rpcUrl });
+    expect(sdk.getConnectionState()).toBe(ConnectionState.CONNECTED);
+
+    const network = await sdk.getNetwork();
+    expect(network.data?.chainId).toBe(networkA.chainId);
   });
 });

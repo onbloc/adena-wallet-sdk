@@ -46,6 +46,8 @@ export class GnoWalletProvider implements TM2WalletProvider {
   private pendingNetworkRequest: symbol | null = null;
   /** Outcome of that attempt, so an attempt it superseded can report it instead of guessing. */
   private pendingConnection: Promise<boolean> | null = null;
+  /** Whether a provider is installed on the wallet, so a failed attempt does not disown it. */
+  private hasActiveProvider = false;
 
   constructor(wallet?: TM2Wallet, networks?: NetworkInfo[]) {
     this.wallet = wallet || null;
@@ -304,15 +306,23 @@ export class GnoWalletProvider implements TM2WalletProvider {
     if (this.pendingNetworkRequest !== request || !this.wallet) {
       // A newer attempt took over, or `disconnect()` landed while the factory
       // was in flight. Either way this provider is stale: drop it rather than
-      // making it the active one, and report what the attempt that took over
-      // ends up doing. `pendingConnection` always belongs to a later attempt
-      // here, so awaiting it cannot wait on this one.
-      return this.pendingConnection ?? false;
+      // making it the active one, and answer the question the caller actually
+      // asked — is the wallet connected? `pendingConnection` always belongs to
+      // a later attempt here, so awaiting it cannot wait on this one.
+      const winner = this.pendingConnection;
+      if (!winner) {
+        return this.hasActiveProvider;
+      }
+
+      // When the attempt that took over fails, whatever was installed before
+      // it is still the active provider, so the wallet is still connected.
+      return winner.then((connected) => connected || this.hasActiveProvider);
     }
     this.pendingNetworkRequest = null;
 
     // No await between installing the provider and recording the chain id.
     this.wallet.connect(provider);
+    this.hasActiveProvider = true;
     this.selectNetwork(network);
 
     return true;
@@ -337,6 +347,7 @@ export class GnoWalletProvider implements TM2WalletProvider {
     // Stops an in-flight attempt from committing a chain id after disconnect.
     this.pendingNetworkRequest = null;
     this.pendingConnection = null;
+    this.hasActiveProvider = false;
 
     return true;
   }

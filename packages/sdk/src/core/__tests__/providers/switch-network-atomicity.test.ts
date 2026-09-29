@@ -214,9 +214,9 @@ describe('GnoWalletProvider.switchNetwork atomicity', () => {
       expect(connected).toEqual({ rpcUrl: networkB.rpcUrl });
     });
 
-    it('reports disconnected when the attempt that took over fails', async () => {
-      const resolvers = deferProviders();
+    it('stays connected when the attempt that took over fails and a provider is installed', async () => {
       const rejecters: Record<string, (reason: unknown) => void> = {};
+      const resolvers: Record<string, (value: unknown) => void> = {};
       createMock.mockImplementation(
         (rpcUrl: string) =>
           new Promise((resolve, reject) => {
@@ -227,6 +227,35 @@ describe('GnoWalletProvider.switchNetwork atomicity', () => {
 
       const connecting = provider.connect();
       const switching = provider.switchNetwork({ chainId: networkB.chainId });
+
+      resolvers[networkA.rpcUrl](providerFor(networkA.rpcUrl));
+      rejecters[networkB.rpcUrl](new Error('connect ECONNREFUSED 127.0.0.1:26657'));
+      const response = await switching;
+
+      // B never connected, so the provider installed before this race is still
+      // the active one and the wallet is still on A.
+      expect(response.type).toBe(WalletResponseFailureType.NETWORK_TIMEOUT);
+      await expect(connecting).resolves.toBe(true);
+      expect(await reportedChainId()).toBe(networkA.chainId);
+      expect(connected).toEqual({ rpcUrl: networkA.rpcUrl });
+    });
+
+    it('reports disconnected when the attempt that took over fails with nothing installed', async () => {
+      const rejecters: Record<string, (reason: unknown) => void> = {};
+      const resolvers: Record<string, (value: unknown) => void> = {};
+      createMock.mockImplementation(
+        (rpcUrl: string) =>
+          new Promise((resolve, reject) => {
+            resolvers[rpcUrl] = resolve;
+            rejecters[rpcUrl] = reject;
+          })
+      );
+
+      // A provider that has never connected, so there is nothing to fall back on.
+      const fresh = new GnoWalletProvider(wallet, [networkA, networkB]);
+
+      const connecting = fresh.connect();
+      const switching = fresh.switchNetwork({ chainId: networkB.chainId });
 
       resolvers[networkA.rpcUrl](providerFor(networkA.rpcUrl));
       rejecters[networkB.rpcUrl](new Error('connect ECONNREFUSED 127.0.0.1:26657'));
