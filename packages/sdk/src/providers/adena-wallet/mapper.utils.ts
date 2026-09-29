@@ -55,7 +55,7 @@ export function mapResponseByAdenaResponse<ProviderResponseData = unknown>(
 }
 
 export function mapTxToTransactionParams(tx: Tx): TransactionParams {
-  const gasWanted = tx.fee?.gas_wanted.toNumber() || defaultGasWanted;
+  const gasWanted = Number(tx.fee?.gas_wanted ?? 0n) || defaultGasWanted;
   const gasFee = tx.fee?.gas_fee || defaultTxFee;
   const gasFeeAmount = parseTokenAmount(gasFee);
   const messages = tx.messages.map(decodeTransactionMessage);

@@ -1,8 +1,37 @@
-import { MsgAddPackage, MsgCall, MsgEndpoint, MsgRun, MsgSend } from '@gnolang/gno-js-client';
+import {
+  MsgAddPackage,
+  MsgCall,
+  MsgCreateSession,
+  MsgEnablePackage,
+  MsgEndpoint,
+  MsgRejectPackage,
+  MsgRevokeAllSessions,
+  MsgRevokeSession,
+  MsgRun,
+  MsgSend,
+} from '@gnolang/gno-js-client';
 
-export type TransactionMessageType = '/bank.MsgSend' | '/vm.m_call' | '/vm.m_addpkg' | '/vm.m_run';
+export type TransactionMessageType =
+  | '/bank.MsgSend'
+  | '/vm.m_call'
+  | '/vm.m_addpkg'
+  | '/vm.m_run'
+  | '/vm.m_enable_pkg'
+  | '/vm.m_reject_pkg'
+  | '/auth.m_create_session'
+  | '/auth.m_revoke_session'
+  | '/auth.m_revoke_all_sessions';
 
-export type TransactionMessageValue = MsgAddPackage | MsgCall | MsgSend | MsgRun;
+export type TransactionMessageValue =
+  | MsgAddPackage
+  | MsgCall
+  | MsgSend
+  | MsgRun
+  | MsgEnablePackage
+  | MsgRejectPackage
+  | MsgCreateSession
+  | MsgRevokeSession
+  | MsgRevokeAllSessions;
 
 export enum BroadcastType {
   SYNC = 'SYNC',
@@ -28,7 +57,41 @@ export interface MsgRunMessage {
   value: MsgRun;
 }
 
-export type TransactionMessage = AddPackageMessage | MsgCallMessage | MsgSendMessage | MsgRunMessage;
+export interface MsgEnablePackageMessage {
+  type: MsgEndpoint.MSG_ENABLE_PKG;
+  value: MsgEnablePackage;
+}
+
+export interface MsgRejectPackageMessage {
+  type: MsgEndpoint.MSG_REJECT_PKG;
+  value: MsgRejectPackage;
+}
+
+export interface MsgCreateSessionMessage {
+  type: MsgEndpoint.MSG_CREATE_SESSION;
+  value: MsgCreateSession;
+}
+
+export interface MsgRevokeSessionMessage {
+  type: MsgEndpoint.MSG_REVOKE_SESSION;
+  value: MsgRevokeSession;
+}
+
+export interface MsgRevokeAllSessionsMessage {
+  type: MsgEndpoint.MSG_REVOKE_ALL_SESSIONS;
+  value: MsgRevokeAllSessions;
+}
+
+export type TransactionMessage =
+  | AddPackageMessage
+  | MsgCallMessage
+  | MsgSendMessage
+  | MsgRunMessage
+  | MsgEnablePackageMessage
+  | MsgRejectPackageMessage
+  | MsgCreateSessionMessage
+  | MsgRevokeSessionMessage
+  | MsgRevokeAllSessionsMessage;
 
 export interface TransactionData {
   messages: TransactionMessage[];

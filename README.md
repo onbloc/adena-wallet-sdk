@@ -275,33 +275,34 @@ const multisigAccountParams = {
   noSort: true,
 };
 
-await adena.CreateMultisigAccount(multisigAccountParams);
+await adenaSDK.createMultisigAccount(multisigAccountParams);
 ```
 
 ### `createMultisigTransaction`
 
-Creates a multisig transaction that can be signed by multiple signers. Returns a multisig document that should be shared with all signers.
+Creates a multisig transaction that can be signed by multiple signers. Returns the unsigned
+amino transaction that should be shared with all signers.
 
 > Note: This transaction must be created from a multisig account. Make sure you have switched to the multisig account in Adena wallet before calling this method.
 
 **Parameters:**
 
-- chain_id: Chain identifier
-- msgs: Array of transaction messages
-- fee: Transaction fee configuration
+- messages: Array of transaction messages
+- fee: `{ gasFee, gasWanted }`, both as strings (`gasFee` is a `<amount><denom>` coin)
 - memo (Optional): Transaction memo
+- networkInfo (Optional): `{ chainId, rpcUrl }` to pin the transaction to a specific network
 
 **Example:**
 
 ```typescript
 const multisigTxParams = {
-  chain_id: "staging",
-  msgs: [
+  messages: [
     {
       type: "/vm.m_call",
       value: {
         caller: "g1multisigaddress...",
         send: "",
+        max_deposit: "",
         pkg_path: "gno.land/r/gnoland/wugnot",
         func: "Approve",
         args: ["g1recipient...", "1000"],
@@ -309,33 +310,39 @@ const multisigTxParams = {
     },
   ],
   fee: {
-    amount: [
-      {
-        amount: "6113",
-        denom: "ugnot",
-      },
-    ],
-    gas: "6112955",
+    gasFee: "6113ugnot",
+    gasWanted: "6112955",
   },
   memo: "",
 };
 
-const response = await adena.CreateMultisigTransaction(multisigTxParams);
-
-const multisigDocument = response.data;
+const response = await adenaSDK.createMultisigTransaction(multisigTxParams);
 
 // response.data structure:
 // {
 //   tx: {
-//     msgs: [...],
+//     msg: [...],
 //     fee: { gas_wanted: "6112955", gas_fee: "6113ugnot" },
 //     signatures: null,
 //     memo: ""
-//   },
-//   chainId: "staging",
-//   accountNumber: "5315",
-//   sequence: "2"
+//   }
 // }
+```
+
+The signing methods take a multisig document — the transaction plus the account context it
+is signed against. Adena no longer returns that context from `createMultisigTransaction`, so
+assemble it from `getAccount` and `getNetwork`:
+
+```typescript
+const account = await adenaSDK.getAccount();
+const network = await adenaSDK.getNetwork();
+
+const multisigDocument = {
+  tx: response.data.tx,
+  chainId: network.data.chainId,
+  accountNumber: account.data.accountNumber,
+  sequence: account.data.sequence,
+};
 ```
 
 ### `signMultisigTransaction`
@@ -344,28 +351,39 @@ Signs a multisig transaction with the current account. This method adds your sig
 
 **Parameters:**
 
-- multisigDocument: from createMultisigTransaction or previous signer's result
+- multisigDocument: `{ tx, chainId, accountNumber, sequence }`
 - multisigSignatures (Optional): only for 2nd signer onwards, from previous signer's result
 
 **Example:**
 
 ```typescript
 // Signer 1: Received multisigDocument from createMultisigTransaction
-const signer1Response = await adena.SignMultisigTransaction(multisigDocument);
+const signer1Response = await adenaSDK.signMultisigTransaction({ multisigDocument });
 
 // Signer 2: Received result from Signer 1
-const { multisigDocument, multisigSignatures } = signer1Response.result;
+const { multisigDocument: doc2, multisigSignatures: sigs2 } = signer1Response.data.result;
 
-const signer2Response = await adena.SignMultisigTransaction(
-  multisigDocument,
-  multisigSignatures
-);
+const signer2Response = await adenaSDK.signMultisigTransaction({
+  multisigDocument: doc2,
+  multisigSignatures: sigs2,
+});
 
 // Signer 3: Received result from Signer 2
-const { multisigDocument: doc3, multisigSignatures: sigs3 } =
-  signer2Response.result;
+const { multisigDocument: doc3, multisigSignatures: sigs3 } = signer2Response.data.result;
 
-const signer3Response = await adena.SignMultisigTransaction(doc3, sigs3);
+const signer3Response = await adenaSDK.signMultisigTransaction({
+  multisigDocument: doc3,
+  multisigSignatures: sigs3,
+});
+```
+
+Each collected signature is an amino secp256k1 signature:
+
+```typescript
+// {
+//   pub_key: { "@type": "/tm.PubKeySecp256k1", value: "A1b2..." },
+//   signature: "c3D4..."
+// }
 ```
 
 ### `broadcastMultisigTransaction`
@@ -383,9 +401,9 @@ Broadcasts a multisig transaction once enough signatures have been collected to 
 
 ```typescript
 // Received result from the final signer (when threshold is met)
-const { multisigDocument, multisigSignatures } = finalSignerResponse.result;
+const { multisigDocument, multisigSignatures } = finalSignerResponse.data.result;
 
-await adena.BroadcastMultisigTransaction(multisigDocument, multisigSignatures);
+await adenaSDK.broadcastMultisigTransaction({ multisigDocument, multisigSignatures });
 ```
 
 ## Utility Functions
@@ -398,6 +416,11 @@ Generate transaction data.
 - `makeAddPackageMessage`: Generate a `AddPackage` of vm transaction message.
 - `makeMsgCallMessage`: Generate a `MsgCall` of vm transaction message.
 - `makeMsgRunMessage`: Generates a `MsgRun` of vm transaction message.
+- `makeMsgEnablePackageMessage`: Generates a `MsgEnablePackage` of vm transaction message.
+- `makeMsgRejectPackageMessage`: Generates a `MsgRejectPackage` of vm transaction message.
+- `makeMsgCreateSessionMessage`: Generates a `MsgCreateSession` of auth transaction message.
+- `makeMsgRevokeSessionMessage`: Generates a `MsgRevokeSession` of auth transaction message.
+- `makeMsgRevokeAllSessionsMessage`: Generates a `MsgRevokeAllSessions` of auth transaction message.
 
 **Example:**
 
@@ -417,7 +440,7 @@ const tx = TransactionBuilder.create()
 
 ## Development Setup
 
-The Node.js version is 18.14.2.  
+The Node.js version is 24.13.0.  
 We recommend using [nvm](https://github.com/nvm-sh/nvm).
 
 ```bash

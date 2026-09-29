@@ -238,7 +238,7 @@ adenaSDK.onChangeNetwork({
 
 ## Development Setup
 
-The Node.js version is 18.14.2.  
+The Node.js version is 24.13.0.  
 We recommend using [nvm](https://github.com/nvm-sh/nvm).
 
 ```bash

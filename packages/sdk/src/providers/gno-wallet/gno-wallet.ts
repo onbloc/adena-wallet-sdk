@@ -146,7 +146,7 @@ export class GnoWalletProvider implements TM2WalletProvider {
       return makeResponseMessage(WalletResponseFailureType.UNADDED_NETWORK);
     }
 
-    this.setNetwork(network);
+    await this.setNetwork(network);
 
     return makeResponseMessage(WalletResponseSuccessType.SWITCH_NETWORK_SUCCESS);
   }
@@ -235,13 +235,15 @@ export class GnoWalletProvider implements TM2WalletProvider {
     this.networkCallback(chainId);
   }
 
-  protected connectProvider(): boolean {
+  protected async connectProvider(): Promise<boolean> {
     if (!this.wallet) {
       return false;
     }
 
     const rpcUrl = this.currentNetwork?.rpcUrl || DEFAULT_RPC_URL;
-    const provider = new JSONRPCProvider(rpcUrl);
+    // tm2-js-client 3.x builds its RPC client asynchronously, so the provider
+    // has to be created through the static factory instead of `new`.
+    const provider = await JSONRPCProvider.create(rpcUrl);
     this.wallet.connect(provider);
     return true;
   }
@@ -255,9 +257,9 @@ export class GnoWalletProvider implements TM2WalletProvider {
     return true;
   }
 
-  private setNetwork(network: NetworkInfo): void {
+  private async setNetwork(network: NetworkInfo): Promise<void> {
     this.currentChainId = network.chainId;
-    this.connectProvider();
+    await this.connectProvider();
 
     // Trigger network change callback
     this.triggerNetworkCallback(this.currentChainId);

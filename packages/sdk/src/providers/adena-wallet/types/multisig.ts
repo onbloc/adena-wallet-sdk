@@ -1,28 +1,63 @@
-/* eslint-disable */
 import { BroadcastTxCommitResult } from '@gnolang/tm2-js-client';
 
+import { TransactionMessage } from '../../../core';
 import { AdenaResponse } from './common';
+import { ContractOptions } from './transactions';
 
 /**
  * Common
  */
-type Fee = {
-  amount: { amount: string; denom: string }[];
-  gas: string;
-};
-
-type MultisigConfig = {
+export type MultisigConfig = {
   signers: string[];
   threshold: number;
   noSort: boolean;
 };
 
+/**
+ * A single signer's signature over a multisig document. Note the amino `@type`
+ * key — this is the JSON shape Adena returns, not the protobuf one.
+ */
 export type MultisigSignature = {
   pub_key: {
-    type: string;
+    '@type': string;
     value: string;
   };
   signature: string;
+};
+
+/**
+ * Amino JSON shape of a transaction message inside a multisig document. The
+ * message type lives under `@type` here, unlike the `{ type, value }` shape
+ * used when submitting messages.
+ */
+export type MultisigRawMessage = {
+  '@type': string;
+  [key: string]: unknown;
+};
+
+/**
+ * Amino JSON transaction carried by a multisig document, `RawTx` on the wallet
+ * side. `signatures` is null until the document has been signed.
+ */
+export type MultisigRawTransaction = {
+  msg: MultisigRawMessage[];
+  fee: {
+    gas_wanted: string;
+    gas_fee: string;
+  };
+  signatures: MultisigSignature[] | null;
+  memo: string;
+};
+
+/**
+ * An unsigned or partially signed multisig transaction, together with the
+ * account context it has to be signed against.
+ */
+export type MultisigTransactionDocument = {
+  tx: MultisigRawTransaction;
+  chainId: string;
+  accountNumber: string;
+  sequence: string;
 };
 
 /**
@@ -56,29 +91,20 @@ export type AdenaCreateMultisigAccount = (
  * CreateMultisigTransaction
  */
 export type CreateMultisigTransactionParams = {
-  chain_id: string;
-  msgs: any[];
-  fee: Fee;
-  memo?: string;
-  accountNumber?: string;
-  sequence?: string;
-};
-
-export type MultisigTransactionResponseTx = {
-  msg: any[];
+  messages: TransactionMessage[];
   fee: {
-    gas_wanted: string;
-    gas_fee: string;
+    gasFee: string;
+    gasWanted: string;
   };
-  signatures: string[] | null;
-  memo: string;
+  memo?: string;
+  networkInfo?: {
+    chainId: string;
+    rpcUrl: string;
+  };
 };
 
 export type CreateMultisigTransactionResponseData = {
-  tx: MultisigTransactionResponseTx;
-  chainId: string;
-  accountNumber: string;
-  sequence: string;
+  tx: MultisigRawTransaction;
 };
 
 enum CreateMultisigTransactionResponseType {
@@ -91,7 +117,8 @@ export type CreateMultisigTransactionResponse = AdenaResponse<
 >;
 
 export type AdenaCreateMultisigTransaction = (
-  params: CreateMultisigTransactionParams
+  params: CreateMultisigTransactionParams,
+  withSaveFile?: boolean
 ) => Promise<CreateMultisigTransactionResponse>;
 
 /**
@@ -99,7 +126,7 @@ export type AdenaCreateMultisigTransaction = (
  */
 export type SignMultisigTransactionResponseData = {
   result: {
-    multisigDocument: CreateMultisigTransactionResponseData;
+    multisigDocument: MultisigTransactionDocument;
     multisigSignatures: MultisigSignature[];
   };
   signature: MultisigSignature;
@@ -115,8 +142,9 @@ export type SignMultisigTransactionResponse = AdenaResponse<
 >;
 
 export type AdenaSignMultisigTransaction = (
-  multisigDocument: CreateMultisigTransactionResponseData,
-  multisigSignatures?: MultisigSignature[]
+  multisigDocument: MultisigTransactionDocument,
+  multisigSignatures?: MultisigSignature[],
+  withSaveFile?: boolean
 ) => Promise<SignMultisigTransactionResponse>;
 
 /**
@@ -132,6 +160,7 @@ export type BroadcastMultisigTransactionResopnse = AdenaResponse<
 >;
 
 export type AdenaBroadcastMultisigTransaction = (
-  multisigDocument: CreateMultisigTransactionResponseData,
-  multisigSignatures: MultisigSignature[]
+  multisigDocument: MultisigTransactionDocument,
+  multisigSignatures?: MultisigSignature[],
+  options?: ContractOptions
 ) => Promise<BroadcastMultisigTransactionResopnse>;
