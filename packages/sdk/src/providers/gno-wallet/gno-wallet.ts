@@ -42,8 +42,10 @@ export class GnoWalletProvider implements TM2WalletProvider {
   protected networks: NetworkInfo[];
   protected currentChainId: string | null;
   protected networkCallback: ((chainId: string) => void) | null;
-  /** Identifies the most recent `setNetwork` call, so a slower earlier one cannot commit. */
+  /** Identifies the connection attempt that currently owns the wallet's provider. */
   private pendingNetworkRequest: symbol | null = null;
+  /** Outcome of that attempt, so an attempt it superseded can report it instead of guessing. */
+  private pendingConnection: Promise<boolean> | null = null;
 
   constructor(wallet?: TM2Wallet, networks?: NetworkInfo[]) {
     this.wallet = wallet || null;
@@ -262,17 +264,30 @@ export class GnoWalletProvider implements TM2WalletProvider {
    * @param network - the network to select, or null to keep the current one
    * @returns {Promise<boolean>} whether the wallet is connected to a provider
    */
-  private async applyConnection(rpcUrl: string, network: NetworkInfo | null): Promise<boolean> {
+  private applyConnection(rpcUrl: string, network: NetworkInfo | null): Promise<boolean> {
     if (!this.wallet) {
       // Nothing to connect, but a network selection still applies.
       this.selectNetwork(network);
-      return false;
+      return Promise.resolve(false);
     }
 
     const request = Symbol(network?.chainId ?? rpcUrl);
     this.pendingNetworkRequest = request;
 
+    const settled = this.runConnection(request, rpcUrl, network);
+    // Registered synchronously, before any later attempt can take the ticket,
+    // so whoever this attempt supersedes can await it.
+    this.pendingConnection = settled.then(
+      (connected) => connected,
+      () => false
+    );
+
+    return settled;
+  }
+
+  private async runConnection(request: symbol, rpcUrl: string, network: NetworkInfo | null): Promise<boolean> {
     let provider: JSONRPCProvider;
+
     try {
       // Since tm2-js-client 3.x the provider is built by an async factory that
       // performs a version-detection round trip, so it rejects for an
@@ -281,16 +296,18 @@ export class GnoWalletProvider implements TM2WalletProvider {
     } catch (error) {
       if (this.pendingNetworkRequest === request) {
         this.pendingNetworkRequest = null;
+        this.pendingConnection = null;
       }
       throw error;
     }
 
     if (this.pendingNetworkRequest !== request || !this.wallet) {
-      // A newer attempt owns the connection, or `disconnect()` landed while
-      // the factory was in flight. Either way this provider is stale: drop it
-      // rather than making it the active one. Report connected only if the
-      // newer attempt has already installed its own.
-      return this.pendingNetworkRequest === null && this.wallet !== null;
+      // A newer attempt took over, or `disconnect()` landed while the factory
+      // was in flight. Either way this provider is stale: drop it rather than
+      // making it the active one, and report what the attempt that took over
+      // ends up doing. `pendingConnection` always belongs to a later attempt
+      // here, so awaiting it cannot wait on this one.
+      return this.pendingConnection ?? false;
     }
     this.pendingNetworkRequest = null;
 
@@ -317,8 +334,9 @@ export class GnoWalletProvider implements TM2WalletProvider {
     this.networks = [];
     this.currentChainId = null;
     this.wallet = null;
-    // Stops an in-flight switch from committing a chain id after disconnect.
+    // Stops an in-flight attempt from committing a chain id after disconnect.
     this.pendingNetworkRequest = null;
+    this.pendingConnection = null;
 
     return true;
   }

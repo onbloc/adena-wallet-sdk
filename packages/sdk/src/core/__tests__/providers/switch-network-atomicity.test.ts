@@ -110,6 +110,9 @@ describe('GnoWalletProvider.switchNetwork atomicity', () => {
   });
 
   describe('overlapping switches', () => {
+    /** Lets queued continuations run without waiting on a superseded attempt. */
+    const flush = (): Promise<void> => new Promise((resolve) => setImmediate(resolve));
+
     /** Hands back a resolver per endpoint so the factory can be settled out of order. */
     const deferProviders = (): Record<string, (value: unknown) => void> => {
       const resolvers: Record<string, (value: unknown) => void> = {};
@@ -146,13 +149,15 @@ describe('GnoWalletProvider.switchNetwork atomicity', () => {
       const fast = provider.switchNetwork({ chainId: networkC.chainId });
 
       resolvers[networkB.rpcUrl](providerFor(networkB.rpcUrl));
-      await slow;
-      // B lost ownership before it resolved, so the wallet is still on A.
+      await flush();
+
+      // B lost ownership before it resolved, so the wallet is still on A. It
+      // has not settled either — a superseded attempt waits for the winner.
       expect(await reportedChainId()).toBe(networkA.chainId);
       expect(connected).toEqual({ rpcUrl: networkA.rpcUrl });
 
       resolvers[networkC.rpcUrl](providerFor(networkC.rpcUrl));
-      await fast;
+      await Promise.all([slow, fast]);
 
       expect(await reportedChainId()).toBe(networkC.chainId);
       expect(connected).toEqual({ rpcUrl: networkC.rpcUrl });
@@ -183,12 +188,51 @@ describe('GnoWalletProvider.switchNetwork atomicity', () => {
 
       // The older connect resolves first; it has already lost ownership.
       resolvers[networkA.rpcUrl](providerFor(networkA.rpcUrl));
-      await connecting;
+      await flush();
       resolvers[networkB.rpcUrl](providerFor(networkB.rpcUrl));
-      await switching;
+      await Promise.all([connecting, switching]);
 
       expect(await reportedChainId()).toBe(networkB.chainId);
       expect(connected).toEqual({ rpcUrl: networkB.rpcUrl });
+    });
+
+    it('reports the outcome of the attempt that took over, not a guess', async () => {
+      const resolvers = deferProviders();
+
+      const connecting = provider.connect();
+      const switching = provider.switchNetwork({ chainId: networkB.chainId });
+
+      // The superseded connect resolves while B is still in flight, so it has
+      // no landed attempt to read state from — it has to wait for B.
+      resolvers[networkA.rpcUrl](providerFor(networkA.rpcUrl));
+      resolvers[networkB.rpcUrl](providerFor(networkB.rpcUrl));
+      await switching;
+
+      // `false` here makes ConnectionManager mark the wallet DISCONNECTED
+      // even though B connected it.
+      await expect(connecting).resolves.toBe(true);
+      expect(connected).toEqual({ rpcUrl: networkB.rpcUrl });
+    });
+
+    it('reports disconnected when the attempt that took over fails', async () => {
+      const resolvers = deferProviders();
+      const rejecters: Record<string, (reason: unknown) => void> = {};
+      createMock.mockImplementation(
+        (rpcUrl: string) =>
+          new Promise((resolve, reject) => {
+            resolvers[rpcUrl] = resolve;
+            rejecters[rpcUrl] = reject;
+          })
+      );
+
+      const connecting = provider.connect();
+      const switching = provider.switchNetwork({ chainId: networkB.chainId });
+
+      resolvers[networkA.rpcUrl](providerFor(networkA.rpcUrl));
+      rejecters[networkB.rpcUrl](new Error('connect ECONNREFUSED 127.0.0.1:26657'));
+      await switching;
+
+      await expect(connecting).resolves.toBe(false);
     });
 
     it('never installs a provider for a switch that lost ownership', async () => {
