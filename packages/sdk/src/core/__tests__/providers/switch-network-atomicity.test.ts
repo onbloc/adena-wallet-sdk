@@ -158,6 +158,39 @@ describe('GnoWalletProvider.switchNetwork atomicity', () => {
       expect(connected).toEqual({ rpcUrl: networkC.rpcUrl });
     });
 
+    it('does not let an in-flight connect() overwrite a newer switch', async () => {
+      const resolvers = deferProviders();
+
+      // `connect()` targets the current network (A) and is still in flight.
+      const connecting = provider.connect();
+      const switching = provider.switchNetwork({ chainId: networkB.chainId });
+
+      // The switch lands first, then the older connect factory resolves.
+      resolvers[networkB.rpcUrl](providerFor(networkB.rpcUrl));
+      await switching;
+      resolvers[networkA.rpcUrl](providerFor(networkA.rpcUrl));
+      await connecting;
+
+      expect(await reportedChainId()).toBe(networkB.chainId);
+      expect(connected).toEqual({ rpcUrl: networkB.rpcUrl });
+    });
+
+    it('does not let an in-flight connect() install ahead of a pending switch', async () => {
+      const resolvers = deferProviders();
+
+      const connecting = provider.connect();
+      const switching = provider.switchNetwork({ chainId: networkB.chainId });
+
+      // The older connect resolves first; it has already lost ownership.
+      resolvers[networkA.rpcUrl](providerFor(networkA.rpcUrl));
+      await connecting;
+      resolvers[networkB.rpcUrl](providerFor(networkB.rpcUrl));
+      await switching;
+
+      expect(await reportedChainId()).toBe(networkB.chainId);
+      expect(connected).toEqual({ rpcUrl: networkB.rpcUrl });
+    });
+
     it('never installs a provider for a switch that lost ownership', async () => {
       const resolvers = deferProviders();
 

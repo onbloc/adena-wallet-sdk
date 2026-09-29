@@ -244,24 +244,72 @@ export class GnoWalletProvider implements TM2WalletProvider {
     this.networkCallback(chainId);
   }
 
-  protected async connectProvider(): Promise<boolean> {
+  protected connectProvider(): Promise<boolean> {
+    return this.applyConnection(this.currentNetwork?.rpcUrl || DEFAULT_RPC_URL, null);
+  }
+
+  /**
+   * Connects the wallet to `rpcUrl`, and when `network` is given makes it the
+   * current one once that connection is installed.
+   *
+   * Every attempt goes through here and takes a ticket, whether it came from
+   * `connect()` or from `switchNetwork()`. The ticket is checked after the
+   * async factory resolves and before anything is mutated, so a slower attempt
+   * can neither install its provider over a newer one nor leave
+   * `currentChainId` describing a node the wallet is not talking to.
+   *
+   * @param rpcUrl
+   * @param network - the network to select, or null to keep the current one
+   * @returns {Promise<boolean>} whether the wallet is connected to a provider
+   */
+  private async applyConnection(rpcUrl: string, network: NetworkInfo | null): Promise<boolean> {
     if (!this.wallet) {
+      // Nothing to connect, but a network selection still applies.
+      this.selectNetwork(network);
       return false;
     }
 
-    const rpcUrl = this.currentNetwork?.rpcUrl || DEFAULT_RPC_URL;
-    // Since tm2-js-client 3.x the provider is built by an async factory that
-    // performs a version-detection round trip, so it rejects for an
-    // unreachable node.
-    const provider = await JSONRPCProvider.create(rpcUrl);
+    const request = Symbol(network?.chainId ?? rpcUrl);
+    this.pendingNetworkRequest = request;
 
-    // `disconnect()` can land while the factory is in flight.
-    if (!this.wallet) {
-      return false;
+    let provider: JSONRPCProvider;
+    try {
+      // Since tm2-js-client 3.x the provider is built by an async factory that
+      // performs a version-detection round trip, so it rejects for an
+      // unreachable node.
+      provider = await JSONRPCProvider.create(rpcUrl);
+    } catch (error) {
+      if (this.pendingNetworkRequest === request) {
+        this.pendingNetworkRequest = null;
+      }
+      throw error;
     }
 
+    if (this.pendingNetworkRequest !== request || !this.wallet) {
+      // A newer attempt owns the connection, or `disconnect()` landed while
+      // the factory was in flight. Either way this provider is stale: drop it
+      // rather than making it the active one. Report connected only if the
+      // newer attempt has already installed its own.
+      return this.pendingNetworkRequest === null && this.wallet !== null;
+    }
+    this.pendingNetworkRequest = null;
+
+    // No await between installing the provider and recording the chain id.
     this.wallet.connect(provider);
+    this.selectNetwork(network);
+
     return true;
+  }
+
+  private selectNetwork(network: NetworkInfo | null): void {
+    if (!network) {
+      return;
+    }
+
+    this.currentChainId = network.chainId;
+
+    // Trigger network change callback
+    this.triggerNetworkCallback(this.currentChainId);
   }
 
   protected disconnectProvider(): boolean {
@@ -276,50 +324,13 @@ export class GnoWalletProvider implements TM2WalletProvider {
   }
 
   /**
-   * Points the wallet at the given network.
-   *
-   * The provider is built first, then installed and committed together in a
-   * single synchronous step, so the network this provider reports and the one
-   * the wallet is actually talking to never diverge — not when the endpoint is
-   * unreachable, and not when a second switch overtakes this one. Rejects if
-   * the RPC endpoint cannot be reached.
+   * Points the wallet at the given network. Rejects if the RPC endpoint cannot
+   * be reached, leaving the previous network selected.
    *
    * @param network
    */
   private async setNetwork(network: NetworkInfo): Promise<void> {
-    const request = Symbol(network.chainId);
-    this.pendingNetworkRequest = request;
-
-    let provider: JSONRPCProvider | null = null;
-
-    if (this.wallet) {
-      try {
-        provider = await JSONRPCProvider.create(network.rpcUrl);
-      } catch (error) {
-        if (this.pendingNetworkRequest === request) {
-          this.pendingNetworkRequest = null;
-        }
-        throw error;
-      }
-    }
-
-    // A later switch took ownership while this one was in flight, or the
-    // wallet was disconnected. Either way this provider is stale: drop it
-    // instead of making it the active one.
-    if (this.pendingNetworkRequest !== request) {
-      return;
-    }
-    this.pendingNetworkRequest = null;
-
-    // No await between installing the provider and recording the chain id.
-    if (provider && this.wallet) {
-      this.wallet.connect(provider);
-    }
-
-    this.currentChainId = network.chainId;
-
-    // Trigger network change callback
-    this.triggerNetworkCallback(this.currentChainId);
+    await this.applyConnection(network.rpcUrl, network);
   }
 
   /**
