@@ -24,8 +24,10 @@ describe('GnoWalletProvider.onChange', () => {
 
   beforeEach(() => {
     provider = new GnoWalletProvider(undefined, mockNetworks);
-    jest.spyOn(provider as unknown as { connectProvider(): boolean }, 'connectProvider').mockReturnValue(true);
-    jest.spyOn(provider as unknown as { setNetwork(network: NetworkInfo): void }, 'setNetwork');
+    jest
+      .spyOn(provider as unknown as { connectProvider(): Promise<boolean> }, 'connectProvider')
+      .mockResolvedValue(true);
+    jest.spyOn(provider as unknown as { setNetwork(network: NetworkInfo): Promise<void> }, 'setNetwork');
   });
 
   afterEach(() => {
@@ -76,12 +78,12 @@ describe('GnoWalletProvider.onChange', () => {
   });
 
   // To ensure that the callback system works in real-world network change situations.
-  it('should notify when network actually changes', () => {
+  it('should notify when network actually changes', async () => {
     const mockCallback = jest.fn();
     provider.onChangeNetwork({ callback: mockCallback });
 
     const newNetwork = mockNetworks[1];
-    (provider as unknown as { setNetwork(network: NetworkInfo): void }).setNetwork(newNetwork);
+    await (provider as unknown as { setNetwork(network: NetworkInfo): Promise<void> }).setNetwork(newNetwork);
 
     expect(mockCallback).toHaveBeenCalledWith(newNetwork.chainId);
     expect(mockCallback).toHaveBeenCalledTimes(1);

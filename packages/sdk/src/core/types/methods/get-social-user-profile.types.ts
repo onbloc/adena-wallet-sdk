@@ -1,23 +1,23 @@
-export declare const LOGIN_PROVIDER: {
-  readonly GOOGLE: 'google';
-  readonly FACEBOOK: 'facebook';
-  readonly REDDIT: 'reddit';
-  readonly DISCORD: 'discord';
-  readonly TWITCH: 'twitch';
-  readonly APPLE: 'apple';
-  readonly LINE: 'line';
-  readonly GITHUB: 'github';
-  readonly KAKAO: 'kakao';
-  readonly LINKEDIN: 'linkedin';
-  readonly TWITTER: 'twitter';
-  readonly WEIBO: 'weibo';
-  readonly WECHAT: 'wechat';
-  readonly FARCASTER: 'farcaster';
-  readonly EMAIL_PASSWORDLESS: 'email_passwordless';
-  readonly SMS_PASSWORDLESS: 'sms_passwordless';
-  readonly WEBAUTHN: 'webauthn';
-  readonly JWT: 'jwt';
-};
+export const LOGIN_PROVIDER = {
+  GOOGLE: 'google',
+  FACEBOOK: 'facebook',
+  REDDIT: 'reddit',
+  DISCORD: 'discord',
+  TWITCH: 'twitch',
+  APPLE: 'apple',
+  LINE: 'line',
+  GITHUB: 'github',
+  KAKAO: 'kakao',
+  LINKEDIN: 'linkedin',
+  TWITTER: 'twitter',
+  WEIBO: 'weibo',
+  WECHAT: 'wechat',
+  FARCASTER: 'farcaster',
+  EMAIL_PASSWORDLESS: 'email_passwordless',
+  SMS_PASSWORDLESS: 'sms_passwordless',
+  WEBAUTHN: 'webauthn',
+  JWT: 'jwt',
+} as const;
 
 export type LOGIN_PROVIDER_TYPE = (typeof LOGIN_PROVIDER)[keyof typeof LOGIN_PROVIDER];
 

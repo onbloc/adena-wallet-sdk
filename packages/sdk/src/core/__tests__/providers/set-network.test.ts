@@ -22,14 +22,14 @@ describe('GnoWalletProvider.setNetwork', () => {
   });
 
   // Validate the currentNetwork setting
-  it('should set currentNetwork', () => {
-    provider['setNetwork'](mockNetwork);
+  it('should set currentNetwork', async () => {
+    await provider['setNetwork'](mockNetwork);
     expect(provider['currentNetwork']).toBe(mockNetwork);
   });
 
   // Validate network callback calls
-  it('should trigger network callback with chainId', () => {
-    provider['setNetwork'](mockNetwork);
+  it('should trigger network callback with chainId', async () => {
+    await provider['setNetwork'](mockNetwork);
     expect(provider['triggerNetworkCallback']).toHaveBeenCalledWith(mockNetwork.chainId);
   });
 });

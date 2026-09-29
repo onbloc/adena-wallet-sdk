@@ -1,0 +1,12 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    // `@gnolang/tm2-js-client` 3.x pulls in ESM-only `uuid`, which Jest's CJS
+    // runtime cannot load, so ts-jest has to transpile it down to CJS. That
+    // puts a file from node_modules through the compiler, which only works
+    // once `rootDir` covers the workspace root.
+    "allowJs": true,
+    "rootDir": "../.."
+  },
+  "include": ["./src/**/*.ts"]
+}

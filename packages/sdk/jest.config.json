@@ -2,10 +2,33 @@
   "preset": "ts-jest",
   "testEnvironment": "node",
   "transform": {
-    "^.+\\.(ts|tsx)$": "ts-jest"
+    "^.+\\.(ts|tsx|js|jsx|mjs)$": [
+      "ts-jest",
+      {
+        "tsconfig": "<rootDir>/tsconfig.spec.json"
+      }
+    ]
   },
-  "testMatch": ["<rootDir>/**/*.test.(ts|tsx)"],
-  "moduleFileExtensions": ["ts", "tsx", "js", "jsx"],
-  "moduleDirectories": ["node_modules", "<rootDir>/packages"],
-  "modulePathIgnorePatterns": ["bin", "node_modules", "coverage", "__mocks__"]
+  "transformIgnorePatterns": [
+    "node_modules/(?!.*(?:uuid|readonly-date-esm|@noble/|@scure/))"
+  ],
+  "testMatch": [
+    "<rootDir>/**/*.test.(ts|tsx)"
+  ],
+  "moduleFileExtensions": [
+    "ts",
+    "tsx",
+    "js",
+    "jsx"
+  ],
+  "moduleDirectories": [
+    "node_modules",
+    "<rootDir>/packages"
+  ],
+  "modulePathIgnorePatterns": [
+    "bin",
+    "node_modules",
+    "coverage",
+    "__mocks__"
+  ]
 }

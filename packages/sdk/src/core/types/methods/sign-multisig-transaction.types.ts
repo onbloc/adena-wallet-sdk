@@ -1,12 +1,12 @@
 import {
-  CreateMultisigTransactionResponseData,
   MultisigSignature,
+  MultisigTransactionDocument,
   SignMultisigTransactionResponseData,
 } from '../../../providers';
 import { WalletResponse } from '../wallet.types';
 
 export type SignMultisigTransactionOptions = {
-  multisigDocument: CreateMultisigTransactionResponseData;
+  multisigDocument: MultisigTransactionDocument;
   multisigSignatures?: MultisigSignature[];
 };
 

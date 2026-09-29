@@ -3,10 +3,12 @@ import { NetworkInfo } from '../../types';
 import { JSONRPCProvider, Wallet as TM2Wallet } from '@gnolang/tm2-js-client';
 import { GNO_ADDRESS_PREFIX } from '../../constants/chains.constant';
 
-// Mock JSONRPCProvider to test without a real network connection
+// Mock JSONRPCProvider to test without a real network connection. Since
+// tm2-js-client 3.x the constructor is protected and instances are built
+// through the async `create` factory.
 jest.mock('@gnolang/tm2-js-client', () => ({
   ...jest.requireActual('@gnolang/tm2-js-client'),
-  JSONRPCProvider: jest.fn(),
+  JSONRPCProvider: { create: jest.fn() },
 }));
 
 describe('GnoWalletProvider.connectProvider', () => {
@@ -36,17 +38,19 @@ describe('GnoWalletProvider.connectProvider', () => {
 
   // Test the normal Provider connection case
   it('should connect provider with correct rpcUrl', async () => {
-    const result = provider['connectProvider']();
+    const result = await provider['connectProvider']();
 
-    expect(JSONRPCProvider).toHaveBeenCalledWith(TEST_RPC_URL);
+    expect(JSONRPCProvider.create).toHaveBeenCalledWith(TEST_RPC_URL);
     expect(mockWallet.connect).toHaveBeenCalled();
     expect(result).toBe(true);
   });
 
   // Test the exception case where the wallet is not set up
-  it('should return false when wallet is not set', () => {
+  it('should return false when wallet is not set', async () => {
     provider['wallet'] = null;
-    const result = provider['connectProvider']();
+    const result = await provider['connectProvider']();
+
+    expect(JSONRPCProvider.create).not.toHaveBeenCalled();
     expect(result).toBe(false);
   });
 });

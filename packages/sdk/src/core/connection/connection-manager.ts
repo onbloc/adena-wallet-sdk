@@ -17,7 +17,13 @@ export class ConnectionManager {
     this.stateManager = new ConnectionStateManager();
     if (this.config.isSession) {
       this.stateManager.loadState();
-      this.connectWallet();
+      // Restoring a session is fire-and-forget. Since tm2-js-client 3.x the
+      // provider factory rejects for an unreachable node, and `connectWallet`
+      // records ERROR before rethrowing, so the rejection has nowhere to go but
+      // out as an unhandled one.
+      this.connectWallet().catch((error) => {
+        console.error((error as Error).message);
+      });
     }
   }
 

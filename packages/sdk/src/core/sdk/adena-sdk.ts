@@ -9,6 +9,8 @@ import {
   disconnect,
   getAccount,
   getConnectionState,
+  getNetwork,
+  getSocialUserProfile,
   isConnected,
   offConnectionChange,
   onChangeAccount,
@@ -37,6 +39,7 @@ import {
   CreateMultisigTransactionOptions,
   CreateMultisigTransactionResponse,
   GetAccountResponse,
+  GetNetworkResponse,
   IsConnectedResponse,
   OffConnectionChangeOptions,
   OffConnectionChangeResponse,
@@ -53,7 +56,6 @@ import {
   SwitchNetworkOptions,
   SwitchNetworkResponse,
 } from '../types/methods';
-import { getSocialUserProfile } from '../methods/get-social-user-profile';
 
 const DEFAULT_ADENA_URL = 'https://www.adena.app';
 
@@ -150,6 +152,14 @@ export class AdenaSDK {
    */
   getAccount(): Promise<GetAccountResponse> {
     return getAccount(this.walletProvider);
+  }
+
+  /**
+   * Retrieves the currently selected network from the wallet provider.
+   * @returns A promise that resolves to the response from the wallet provider's `getNetwork` method.
+   */
+  getNetwork(): Promise<GetNetworkResponse> {
+    return getNetwork(this.walletProvider);
   }
 
   /**

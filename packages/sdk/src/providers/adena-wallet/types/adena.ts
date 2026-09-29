@@ -6,8 +6,8 @@ import {
   AdenaGetAccount,
   AdenaGetNetwork,
   AdenaOnEvent,
+  AdenaSign,
   AdenaSignTx,
-  AdenaSignDocument,
   AdenaSwitchNetwork,
   AdenaCreateMultisigAccount,
   AdenaCreateMultisigTransaction,
@@ -16,6 +16,9 @@ import {
 } from '.';
 
 export type AdenaWallet = {
+  // The installed extension version
+  version: string;
+
   // General
   AddEstablish: AdenaAddEstablish;
 
@@ -31,7 +34,7 @@ export type AdenaWallet = {
   // Transactions
   SignTx: AdenaSignTx;
 
-  SignDocument: AdenaSignDocument;
+  Sign: AdenaSign;
 
   DoContract: AdenaDoContract;
 

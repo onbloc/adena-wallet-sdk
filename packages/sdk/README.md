@@ -28,9 +28,12 @@ yarn add @adena-wallet/sdk
 Here is a basic example of how to use the SDK:
 
 ```
-import { AdenaSDK, WalletProvider } from '@adena-wallet/sdk';
+import { AdenaSDK, AdenaWalletProvider } from '@adena-wallet/sdk';
 
-const walletProvider = new WalletProvider();
+// `WalletProvider` is the interface; pass a concrete provider —
+// `AdenaWalletProvider` for the extension, `GnoWalletProvider` /
+// `GnoSocialWalletProvider` for a locally held key.
+const walletProvider = new AdenaWalletProvider();
 const adenaSDK = new AdenaSDK(walletProvider);
 
 // Connect to the wallet
@@ -136,13 +139,14 @@ adenaSDK.getAccount().then((account) => {
 
 ### `switchNetwork`
 
-Switches the wallet to a different network.
+Switches the wallet to a different network. With `GnoWalletProvider`, an unreachable RPC returns
+`NETWORK_TIMEOUT` and leaves the previously connected network active.
 
 **Example:**
 
 ```
-adenaSDK.switchNetwork({ chainId: 'new-chain-id' }).then(() => {
-  console.log('Network switched');
+adenaSDK.switchNetwork({ chainId: 'new-chain-id' }).then((response) => {
+  console.log('Network switch:', response.status, response.type);
 });
 ```
 
@@ -238,7 +242,7 @@ adenaSDK.onChangeNetwork({
 
 ## Development Setup
 
-The Node.js version is 18.14.2.  
+The Node.js version is 24.13.0.  
 We recommend using [nvm](https://github.com/nvm-sh/nvm).
 
 ```bash

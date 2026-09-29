@@ -6,6 +6,7 @@ export * from './disconnect';
 export * from './get-account';
 export * from './get-connection-state';
 export * from './get-network';
+export * from './get-social-user-profile';
 export * from './is-connected';
 export * from './off-connection-change';
 export * from './on-change-account';

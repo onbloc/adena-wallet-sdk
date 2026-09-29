@@ -25,8 +25,10 @@ describe('GnoWalletProvider.switchNetwork', () => {
 
   beforeEach(() => {
     provider = new GnoWalletProvider(undefined, mockNetworks);
-    jest.spyOn(provider as unknown as { connectProvider(): boolean }, 'connectProvider').mockReturnValue(true);
-    jest.spyOn(provider as unknown as { setNetwork(network: NetworkInfo): void }, 'setNetwork');
+    jest
+      .spyOn(provider as unknown as { connectProvider(): Promise<boolean> }, 'connectProvider')
+      .mockResolvedValue(true);
+    jest.spyOn(provider as unknown as { setNetwork(network: NetworkInfo): Promise<void> }, 'setNetwork');
   });
 
   afterEach(() => {

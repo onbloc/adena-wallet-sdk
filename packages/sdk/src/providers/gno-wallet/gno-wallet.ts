@@ -42,6 +42,12 @@ export class GnoWalletProvider implements TM2WalletProvider {
   protected networks: NetworkInfo[];
   protected currentChainId: string | null;
   protected networkCallback: ((chainId: string) => void) | null;
+  /** Identifies the connection attempt that currently owns the wallet's provider. */
+  private pendingNetworkRequest: symbol | null = null;
+  /** Outcome of that attempt, so an attempt it superseded can report it instead of guessing. */
+  private pendingConnection: Promise<boolean> | null = null;
+  /** Whether a provider is installed on the wallet, so a failed attempt does not disown it. */
+  private hasActiveProvider = false;
 
   constructor(wallet?: TM2Wallet, networks?: NetworkInfo[]) {
     this.wallet = wallet || null;
@@ -146,7 +152,14 @@ export class GnoWalletProvider implements TM2WalletProvider {
       return makeResponseMessage(WalletResponseFailureType.UNADDED_NETWORK);
     }
 
-    this.setNetwork(network);
+    try {
+      await this.setNetwork(network);
+    } catch (error) {
+      console.error(error);
+      // The RPC endpoint could not be reached, so the wallet is still on the
+      // network it was on before this call.
+      return makeResponseMessage(WalletResponseFailureType.NETWORK_TIMEOUT);
+    }
 
     return makeResponseMessage(WalletResponseSuccessType.SWITCH_NETWORK_SUCCESS);
   }
@@ -235,15 +248,98 @@ export class GnoWalletProvider implements TM2WalletProvider {
     this.networkCallback(chainId);
   }
 
-  protected connectProvider(): boolean {
+  protected connectProvider(): Promise<boolean> {
+    return this.applyConnection(this.currentNetwork?.rpcUrl || DEFAULT_RPC_URL, null);
+  }
+
+  /**
+   * Connects the wallet to `rpcUrl`, and when `network` is given makes it the
+   * current one once that connection is installed.
+   *
+   * Every attempt goes through here and takes a ticket, whether it came from
+   * `connect()` or from `switchNetwork()`. The ticket is checked after the
+   * async factory resolves and before anything is mutated, so a slower attempt
+   * can neither install its provider over a newer one nor leave
+   * `currentChainId` describing a node the wallet is not talking to.
+   *
+   * @param rpcUrl
+   * @param network - the network to select, or null to keep the current one
+   * @returns {Promise<boolean>} whether the wallet is connected to a provider
+   */
+  private applyConnection(rpcUrl: string, network: NetworkInfo | null): Promise<boolean> {
     if (!this.wallet) {
-      return false;
+      // Nothing to connect, but a network selection still applies.
+      this.selectNetwork(network);
+      return Promise.resolve(false);
     }
 
-    const rpcUrl = this.currentNetwork?.rpcUrl || DEFAULT_RPC_URL;
-    const provider = new JSONRPCProvider(rpcUrl);
+    const request = Symbol(network?.chainId ?? rpcUrl);
+    this.pendingNetworkRequest = request;
+
+    const settled = this.runConnection(request, rpcUrl, network);
+    // Registered synchronously, before any later attempt can take the ticket,
+    // so whoever this attempt supersedes can await it.
+    this.pendingConnection = settled.then(
+      (connected) => connected,
+      () => false
+    );
+
+    return settled;
+  }
+
+  private async runConnection(request: symbol, rpcUrl: string, network: NetworkInfo | null): Promise<boolean> {
+    let provider: JSONRPCProvider;
+
+    try {
+      // Since tm2-js-client 3.x the provider is built by an async factory that
+      // performs a version-detection round trip, so it rejects for an
+      // unreachable node.
+      provider = await JSONRPCProvider.create(rpcUrl);
+    } catch (error) {
+      if (this.pendingNetworkRequest === request) {
+        this.pendingNetworkRequest = null;
+        this.pendingConnection = null;
+        throw error;
+      }
+      // This factory is obsolete. Its failure cannot change the connection
+      // established (or retained) by the attempt that took over.
+      return this.supersedingConnectionOutcome();
+    }
+
+    if (this.pendingNetworkRequest !== request || !this.wallet) {
+      // A newer attempt took over, or `disconnect()` landed while the factory
+      // was in flight. Drop this provider rather than installing it.
+      return this.supersedingConnectionOutcome();
+    }
+    this.pendingNetworkRequest = null;
+
+    // No await between installing the provider and recording the chain id.
     this.wallet.connect(provider);
+    this.hasActiveProvider = true;
+    this.selectNetwork(network);
+
     return true;
+  }
+
+  private supersedingConnectionOutcome(): boolean | Promise<boolean> {
+    const winner = this.pendingConnection;
+    if (!winner) {
+      return this.hasActiveProvider;
+    }
+
+    // A failed newer attempt leaves any previously installed provider active.
+    return winner.then((connected) => connected || this.hasActiveProvider);
+  }
+
+  private selectNetwork(network: NetworkInfo | null): void {
+    if (!network) {
+      return;
+    }
+
+    this.currentChainId = network.chainId;
+
+    // Trigger network change callback
+    this.triggerNetworkCallback(this.currentChainId);
   }
 
   protected disconnectProvider(): boolean {
@@ -251,16 +347,22 @@ export class GnoWalletProvider implements TM2WalletProvider {
     this.networks = [];
     this.currentChainId = null;
     this.wallet = null;
+    // Stops an in-flight attempt from committing a chain id after disconnect.
+    this.pendingNetworkRequest = null;
+    this.pendingConnection = null;
+    this.hasActiveProvider = false;
 
     return true;
   }
 
-  private setNetwork(network: NetworkInfo): void {
-    this.currentChainId = network.chainId;
-    this.connectProvider();
-
-    // Trigger network change callback
-    this.triggerNetworkCallback(this.currentChainId);
+  /**
+   * Points the wallet at the given network. Rejects if the RPC endpoint cannot
+   * be reached, leaving the previous network selected.
+   *
+   * @param network
+   */
+  private async setNetwork(network: NetworkInfo): Promise<void> {
+    await this.applyConnection(network.rpcUrl, network);
   }
 
   /**
