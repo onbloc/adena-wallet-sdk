@@ -245,26 +245,21 @@ export class GnoWalletProvider implements TM2WalletProvider {
   }
 
   protected async connectProvider(): Promise<boolean> {
-    return this.connectProviderTo(this.currentNetwork?.rpcUrl || DEFAULT_RPC_URL);
-  }
-
-  /**
-   * Connects the wallet to the given RPC endpoint.
-   *
-   * Since tm2-js-client 3.x the provider is built by an async factory that
-   * performs a version-detection round trip, so it rejects for an unreachable
-   * node. Nothing is mutated until that resolves, which lets callers treat a
-   * rejection as "the previous provider is still the active one".
-   *
-   * @param rpcUrl
-   * @returns {Promise<boolean>} false if there is no wallet to connect
-   */
-  private async connectProviderTo(rpcUrl: string): Promise<boolean> {
     if (!this.wallet) {
       return false;
     }
 
+    const rpcUrl = this.currentNetwork?.rpcUrl || DEFAULT_RPC_URL;
+    // Since tm2-js-client 3.x the provider is built by an async factory that
+    // performs a version-detection round trip, so it rejects for an
+    // unreachable node.
     const provider = await JSONRPCProvider.create(rpcUrl);
+
+    // `disconnect()` can land while the factory is in flight.
+    if (!this.wallet) {
+      return false;
+    }
+
     this.wallet.connect(provider);
     return true;
   }
@@ -283,9 +278,11 @@ export class GnoWalletProvider implements TM2WalletProvider {
   /**
    * Points the wallet at the given network.
    *
-   * The connection is established before `currentChainId` moves, so a failed
-   * or superseded switch leaves the reported network and the wallet's active
-   * provider in agreement. Rejects if the RPC endpoint cannot be reached.
+   * The provider is built first, then installed and committed together in a
+   * single synchronous step, so the network this provider reports and the one
+   * the wallet is actually talking to never diverge — not when the endpoint is
+   * unreachable, and not when a second switch overtakes this one. Rejects if
+   * the RPC endpoint cannot be reached.
    *
    * @param network
    */
@@ -293,21 +290,31 @@ export class GnoWalletProvider implements TM2WalletProvider {
     const request = Symbol(network.chainId);
     this.pendingNetworkRequest = request;
 
-    try {
-      await this.connectProviderTo(network.rpcUrl);
-    } catch (error) {
-      if (this.pendingNetworkRequest === request) {
-        this.pendingNetworkRequest = null;
+    let provider: JSONRPCProvider | null = null;
+
+    if (this.wallet) {
+      try {
+        provider = await JSONRPCProvider.create(network.rpcUrl);
+      } catch (error) {
+        if (this.pendingNetworkRequest === request) {
+          this.pendingNetworkRequest = null;
+        }
+        throw error;
       }
-      throw error;
     }
 
-    // A later switch started while this one was in flight and owns the chain id
-    // now, so committing here would report a network the wallet is not on.
+    // A later switch took ownership while this one was in flight, or the
+    // wallet was disconnected. Either way this provider is stale: drop it
+    // instead of making it the active one.
     if (this.pendingNetworkRequest !== request) {
       return;
     }
     this.pendingNetworkRequest = null;
+
+    // No await between installing the provider and recording the chain id.
+    if (provider && this.wallet) {
+      this.wallet.connect(provider);
+    }
 
     this.currentChainId = network.chainId;
 

@@ -109,24 +109,70 @@ describe('GnoWalletProvider.switchNetwork atomicity', () => {
     expect(connected).toEqual({ rpcUrl: networkB.rpcUrl });
   });
 
-  it('lets the most recent switch win when two overlap', async () => {
-    const resolvers: Record<string, (value: unknown) => void> = {};
-    createMock.mockImplementation(
-      (rpcUrl: string) =>
-        new Promise((resolve) => {
-          resolvers[rpcUrl] = resolve;
-        })
-    );
+  describe('overlapping switches', () => {
+    /** Hands back a resolver per endpoint so the factory can be settled out of order. */
+    const deferProviders = (): Record<string, (value: unknown) => void> => {
+      const resolvers: Record<string, (value: unknown) => void> = {};
+      createMock.mockImplementation(
+        (rpcUrl: string) =>
+          new Promise((resolve) => {
+            resolvers[rpcUrl] = resolve;
+          })
+      );
+      return resolvers;
+    };
 
-    const slow = provider.switchNetwork({ chainId: networkB.chainId });
-    const fast = provider.switchNetwork({ chainId: networkC.chainId });
+    it('keeps reported and active in sync when the superseded switch resolves last', async () => {
+      const resolvers = deferProviders();
 
-    // C started second but settles first, then the stale B connection lands.
-    resolvers[networkC.rpcUrl](providerFor(networkC.rpcUrl));
-    await fast;
-    resolvers[networkB.rpcUrl](providerFor(networkB.rpcUrl));
-    await slow;
+      const slow = provider.switchNetwork({ chainId: networkB.chainId });
+      const fast = provider.switchNetwork({ chainId: networkC.chainId });
 
-    expect(await reportedChainId()).toBe(networkC.chainId);
+      // C started second but settles first, then the stale B connection lands.
+      resolvers[networkC.rpcUrl](providerFor(networkC.rpcUrl));
+      await fast;
+      resolvers[networkB.rpcUrl](providerFor(networkB.rpcUrl));
+      await slow;
+
+      expect(await reportedChainId()).toBe(networkC.chainId);
+      // B must never become the active provider after C has committed.
+      expect(connected).toEqual({ rpcUrl: networkC.rpcUrl });
+    });
+
+    it('keeps reported and active in sync when the superseded switch resolves first', async () => {
+      const resolvers = deferProviders();
+
+      const slow = provider.switchNetwork({ chainId: networkB.chainId });
+      const fast = provider.switchNetwork({ chainId: networkC.chainId });
+
+      resolvers[networkB.rpcUrl](providerFor(networkB.rpcUrl));
+      await slow;
+      // B lost ownership before it resolved, so the wallet is still on A.
+      expect(await reportedChainId()).toBe(networkA.chainId);
+      expect(connected).toEqual({ rpcUrl: networkA.rpcUrl });
+
+      resolvers[networkC.rpcUrl](providerFor(networkC.rpcUrl));
+      await fast;
+
+      expect(await reportedChainId()).toBe(networkC.chainId);
+      expect(connected).toEqual({ rpcUrl: networkC.rpcUrl });
+    });
+
+    it('never installs a provider for a switch that lost ownership', async () => {
+      const resolvers = deferProviders();
+
+      const slow = provider.switchNetwork({ chainId: networkB.chainId });
+      const fast = provider.switchNetwork({ chainId: networkC.chainId });
+
+      resolvers[networkC.rpcUrl](providerFor(networkC.rpcUrl));
+      await fast;
+      resolvers[networkB.rpcUrl](providerFor(networkB.rpcUrl));
+      await slow;
+
+      const installed = (wallet.connect as unknown as jest.Mock).mock.calls.map(
+        ([p]: [{ rpcUrl: string }]) => p.rpcUrl
+      );
+      expect(installed).not.toContain(networkB.rpcUrl);
+    });
   });
 });
