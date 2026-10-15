@@ -14,6 +14,8 @@ import {
   OnChangeNetworkResponse,
   SwitchNetworkOptions,
   SwitchNetworkResponse,
+  SignArbitraryOptions,
+  SignArbitraryResponse,
   SignTransactionOptions,
   SignTransactionResponse,
   CreateMultisigAccountOptions,
@@ -90,6 +92,15 @@ export interface WalletProvider {
    * @returns {BroadcastTxCommitResult} Result of the broadcast transaction
    */
   broadcastTransaction: (options: BroadcastTransactionOptions) => Promise<BroadcastTransactionResponse>;
+
+  /**
+   * Sign arbitrary off-chain data (ADR-036) to prove control of an address
+   * @async
+   * @param {string} signer - Address expected to sign the data
+   * @param {string} data - UTF-8 text to sign
+   * @returns {SignedArbitraryData} The signed document and its signature, verifiable with `verifyArbitrarySignature`
+   */
+  signArbitrary: (options: SignArbitraryOptions) => Promise<SignArbitraryResponse>;
 
   /**
    * Add a listener on connected account changes

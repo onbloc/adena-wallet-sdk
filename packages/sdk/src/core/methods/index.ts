@@ -12,6 +12,7 @@ export * from './off-connection-change';
 export * from './on-change-account';
 export * from './on-change-network';
 export * from './on-connection-change';
+export * from './sign-arbitrary';
 export * from './sign-transaction';
 export * from './switch-network';
 // multisig

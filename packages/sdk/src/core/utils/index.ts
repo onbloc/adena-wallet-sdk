@@ -1,3 +1,4 @@
+export * from './arbitrary.utils';
 export * from './encode.utils';
 export * from './message.utils';
 export * from './network.utils';

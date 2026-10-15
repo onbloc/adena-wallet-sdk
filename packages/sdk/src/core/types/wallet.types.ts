@@ -31,6 +31,7 @@ export enum WalletResponseSuccessType {
   GET_ACCOUNT_SUCCESS = 'GET_ACCOUNT',
   GET_NETWORK_SUCCESS = 'GET_NETWORK',
   SIGN_SUCCESS = 'SIGN_TX',
+  SIGN_ARBITRARY_SUCCESS = 'SIGN_ARBITRARY',
   CREATE_MULTISIG_ACCOUNT_SUCCESS = 'CREATE_MULTISIG_ACCOUNT',
   CREATE_MULTISIG_TRANSACTION_SUCCESS = 'CREATE_MULTISIG_TRANSACTION',
   SIGN_MULTISIG_TRANSACTION_SUCCESS = 'SIGN_MULTISIG_TRANSACTION',
@@ -85,6 +86,7 @@ export enum WalletResponseExecuteType {
   GET_NETWORK = 'GET_NETWORK',
   SIGN_AMINO = 'SIGN_AMINO',
   SIGN_TX = 'SIGN_TX',
+  SIGN_ARBITRARY = 'SIGN_ARBITRARY',
   CREATE_MULTISIG_ACCOUNT = 'CREATE_MULTISIG_ACCOUNT',
   CREATE_MULTISIG_TRANSACTION = 'CREATE_MULTISIG_TRANSACTION',
   SIGN_MULTISIG_TRANSACTION = 'SIGN_MULTISIG_TRANSACTION',
@@ -125,6 +127,12 @@ const WalletSuccessMessageInfo: Record<
     status: WalletResponseStatus.SUCCESS,
     type: WalletResponseSuccessType.SIGN_SUCCESS,
     message: 'Signature hash has been successfully generated.',
+  },
+  SIGN_ARBITRARY: {
+    code: 0,
+    status: WalletResponseStatus.SUCCESS,
+    type: WalletResponseSuccessType.SIGN_ARBITRARY_SUCCESS,
+    message: 'The arbitrary data has been successfully signed.',
   },
   CREATE_MULTISIG_ACCOUNT: {
     code: 0,
@@ -413,6 +421,12 @@ const WalletExecuteMessageInfo: Record<
     status: WalletResponseStatus.SUCCESS,
     type: WalletResponseExecuteType.SIGN_TX,
     message: 'Sign Transaction',
+  },
+  SIGN_ARBITRARY: {
+    code: 0,
+    status: WalletResponseStatus.SUCCESS,
+    type: WalletResponseExecuteType.SIGN_ARBITRARY,
+    message: 'Sign Arbitrary',
   },
   CREATE_MULTISIG_ACCOUNT: {
     code: 0,

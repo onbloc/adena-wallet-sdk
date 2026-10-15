@@ -43,6 +43,9 @@
   },
   "dependencies": {
     "@bufbuild/protobuf": "2.15.0",
+    "@cosmjs/amino": "0.39.0",
+    "@cosmjs/crypto": "0.39.0",
+    "@cosmjs/encoding": "0.39.0",
     "@gnolang/gno-js-client": "3.1.0",
     "@gnolang/tm2-js-client": "3.3.0",
     "@web3auth/auth-adapter": "9.5.3",

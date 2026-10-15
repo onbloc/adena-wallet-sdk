@@ -36,6 +36,7 @@ Object.assign(mockSocialWalletProvider, {
   addNetwork: jest.fn().mockResolvedValue(makeResponseMessage(WalletResponseSuccessType.ADD_NETWORK_SUCCESS)),
   signTransaction: jest.fn().mockResolvedValue(makeResponseMessage(WalletResponseSuccessType.SIGN_SUCCESS)),
   broadcastTransaction: jest.fn().mockResolvedValue(makeResponseMessage(WalletResponseSuccessType.TRANSACTION_SUCCESS)),
+  signArbitrary: jest.fn().mockResolvedValue(makeResponseMessage(WalletResponseSuccessType.SIGN_ARBITRARY_SUCCESS)),
   onChangeAccount: jest.fn().mockImplementation(() => {
     return;
   }),

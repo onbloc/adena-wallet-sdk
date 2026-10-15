@@ -10,6 +10,7 @@ export type {
   AddEstablishResponse,
   CreateMultisigAccountResponse,
   CreateMultisigTransactionResponse,
+  SignArbitraryResponse,
   SignMultisigTransactionResponse,
 } from './core/types/methods';
 
@@ -17,5 +18,6 @@ export type {
   AddEstablishResponse as AdenaAddEstablishResponse,
   CreateMultisigAccountResponse as AdenaCreateMultisigAccountResponse,
   CreateMultisigTransactionResponse as AdenaCreateMultisigTransactionResponse,
+  SignArbitraryResponse as AdenaSignArbitraryResponse,
   SignMultisigTransactionResponse as AdenaSignMultisigTransactionResponse,
 } from './providers/adena-wallet/types';

@@ -22,6 +22,8 @@ import {
   OnChangeNetworkOptions,
   OnChangeNetworkResponse,
   SignMultisigTransactionOptions,
+  SignArbitraryOptions,
+  SignArbitraryResponse,
   SignMultisigTransactionResponse,
   SignTransactionOptions,
   SignTransactionResponse,
@@ -108,6 +110,17 @@ export class AdenaWalletProvider implements WalletProvider {
     const transactionResult = response.data;
 
     return mapResponseByAdenaResponse(response, transactionResult);
+  }
+
+  async signArbitrary(options: SignArbitraryOptions): Promise<SignArbitraryResponse> {
+    const adena = this.getAdena();
+    if (!adena.SignArbitrary) {
+      return makeResponseMessage(WalletResponseFailureType.UNSUPPORTED_TYPE);
+    }
+
+    const response = await adena.SignArbitrary({ signer: options.signer, data: options.data });
+
+    return mapResponseByAdenaResponse(response, response.data);
   }
 
   async createMultisigAccount(options: CreateMultisigAccountOptions): Promise<CreateMultisigAccountResponse> {
