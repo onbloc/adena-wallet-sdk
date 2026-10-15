@@ -7,6 +7,7 @@ import {
   AdenaGetNetwork,
   AdenaOnEvent,
   AdenaSign,
+  AdenaSignArbitrary,
   AdenaSignTx,
   AdenaSwitchNetwork,
   AdenaCreateMultisigAccount,
@@ -37,6 +38,9 @@ export type AdenaWallet = {
   Sign: AdenaSign;
 
   DoContract: AdenaDoContract;
+
+  // Optional — present on extensions that support ADR-036 arbitrary signing
+  SignArbitrary?: AdenaSignArbitrary;
 
   // Multisig
   CreateMultisigAccount: AdenaCreateMultisigAccount;

@@ -1,4 +1,5 @@
 export * from './account.types';
+export * from './arbitrary.types';
 export * from './config.types';
 export * from './methods';
 export * from './network.types';

@@ -16,6 +16,7 @@ import {
   onChangeAccount,
   onChangeNetwork,
   onConnectionChange,
+  signArbitrary,
   signTransaction,
   switchNetwork,
   createMultisigAccount,
@@ -51,6 +52,8 @@ import {
   OnConnectionChangeResponse,
   SignMultisigTransactionOptions,
   SignMultisigTransactionResponse,
+  SignArbitraryOptions,
+  SignArbitraryResponse,
   SignTransactionOptions,
   SignTransactionResponse,
   SwitchNetworkOptions,
@@ -196,6 +199,15 @@ export class AdenaSDK {
    */
   broadcastTransaction(options: BroadcastTransactionOptions): Promise<BroadcastTransactionResponse> {
     return broadcastTransaction(this.walletProvider, options);
+  }
+
+  /**
+   * Signs arbitrary off-chain data (ADR-036) to prove control of an address.
+   * @param options - The expected signer address and the UTF-8 text to sign.
+   * @returns A promise that resolves to the signed document and signature, verifiable with `verifyArbitrarySignature`.
+   */
+  signArbitrary(options: SignArbitraryOptions): Promise<SignArbitraryResponse> {
+    return signArbitrary(this.walletProvider, options);
   }
 
   createMultisigAccount(options: CreateMultisigAccountOptions): Promise<CreateMultisigAccountResponse> {

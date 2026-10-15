@@ -2,7 +2,7 @@
 
 The Adena Wallet SDK is a TypeScript-based library designed to interact with the Adena Wallet and TM2 Wallet.
 
-This SDK provides various functionalities, including wallet connection, network switching, transaction signing, and more.
+This SDK provides various functionalities, including wallet connection, network switching, transaction signing, arbitrary message signing (ADR-036), and more.
 
 ## Adena Wallet
 
@@ -212,6 +212,47 @@ adenaSDK.broadcastTransaction({ tx }).then((response) => {
 });
 ```
 
+### `signArbitrary`
+
+Signs arbitrary off-chain data with the connected account, following [ADR-036](https://github.com/cosmos/cosmos-sdk/blob/main/docs/architecture/adr-036-arbitrary-signature.md). Use it to prove that a user controls an address (e.g. sign-in, ownership checks) — nothing is broadcast and no funds move.
+
+**Parameters:**
+
+- signer: Address expected to sign. The wallet answers `ACCOUNT_MISMATCH` if it is not the current account
+- data: UTF-8 text shown to the user and signed as-is (non-empty, at most 4096 bytes)
+
+The signed document is a single `sign/MsgSignData` message with zero account number, sequence and fee. Unlike plain ADR-036, `chain_id` carries the connected network instead of `''`, so a proof issued on one network cannot be replayed on another.
+
+> Note: Requires an Adena extension version that exposes `SignArbitrary`; older versions answer `UNSUPPORTED_TYPE`.
+
+**Example:**
+
+```typescript
+const account = await adenaSDK.getAccount();
+const nonce = await fetchNonceFromServer();
+
+const response = await adenaSDK.signArbitrary({
+  signer: account.data.address,
+  data: `Sign in to example.com\nNonce: ${nonce}`,
+});
+
+// response.data structure:
+// {
+//   signed: {
+//     chain_id: "gnoland1",
+//     account_number: "0",
+//     sequence: "0",
+//     fee: { amount: [], gas: "0" },
+//     msgs: [{ type: "sign/MsgSignData", value: { signer: "g1...", data: "<base64 of data>" } }],
+//     memo: ""
+//   },
+//   signature: {
+//     pubKey: { typeUrl: "/tm.PubKeySecp256k1", value: "<base64 compressed key>" },
+//     signature: "<base64 r||s>"
+//   }
+// }
+```
+
 ### `onChangeAccount`
 
 Sets up a listener for account changes.
@@ -237,6 +278,31 @@ adenaSDK.onChangeNetwork({
   callback: (network) => {
     console.log('Network changed:', network);
   },
+});
+```
+
+## Utility Functions
+
+### ADR-036 Verification
+
+Verify a `signArbitrary` proof anywhere — in the browser or on a server — without a wallet or network access.
+
+- `verifyArbitrarySignature(proof, expected?)`: Resolves `true` only when the public key derives the signer address, the document is the canonical ADR-036 form, and the signature is a valid low-S Secp256k1 signature over it. Any field in `expected` (`signer`, `chainId`, `data`) must match too. Never throws; malformed input resolves to `false`.
+- `parseArbitrarySignDoc(doc)`: Returns `{ chainId, signer, data }` with `data` decoded, or `null` if the document is not a single `sign/MsgSignData` message.
+- `makeArbitrarySignDoc(chainId, signer, data)`: Builds the document that is signed.
+- `getArbitrarySignBytes(doc)`: Serializes a document into the signed bytes (sorted JSON, byte-identical to `@cosmjs/amino`'s `serializeSignDoc`).
+
+> Always pin `signer`, `chainId` and the exact `data` (including a single-use nonce) when verifying, otherwise a valid proof can be replayed. Passing `chainId: ''` verifies standard Cosmos ADR-036 signatures produced by other wallets.
+
+**Example:**
+
+```typescript
+import { verifyArbitrarySignature } from '@adena-wallet/sdk';
+
+const isValid = await verifyArbitrarySignature(response.data, {
+  signer: account.data.address,
+  chainId: 'gnoland1',
+  data: `Sign in to example.com\nNonce: ${nonce}`,
 });
 ```
 

@@ -1,4 +1,6 @@
 import { decodeTxMessages } from '@gnolang/gno-js-client';
+import { Secp256k1 } from '@cosmjs/crypto';
+import { toBase64 } from '@cosmjs/encoding';
 import {
   JSONRPCProvider,
   Secp256k1PubKeyType,
@@ -7,7 +9,13 @@ import {
   uint8ArrayToBase64,
 } from '@gnolang/tm2-js-client';
 
-import { BroadcastType, NetworkInfo, WalletResponseFailureType, WalletResponseSuccessType } from '../../core';
+import {
+  BroadcastType,
+  MAX_ARBITRARY_MESSAGE_BYTES,
+  NetworkInfo,
+  WalletResponseFailureType,
+  WalletResponseSuccessType,
+} from '../../core';
 import { DEFAULT_RPC_URL, GNO_ADDRESS_PREFIX } from '../../core/constants/chains.constant';
 import { TM2WalletProvider } from '../../core/providers/tm2-wallet';
 import {
@@ -25,12 +33,15 @@ import {
   OnChangeAccountResponse,
   OnChangeNetworkOptions,
   OnChangeNetworkResponse,
+  SignArbitraryOptions,
+  SignArbitraryResponse,
   SignMultisigTransactionResponse,
   SignTransactionOptions,
   SignTransactionResponse,
   SwitchNetworkOptions,
   SwitchNetworkResponse,
 } from '../../core/types/methods';
+import { getArbitrarySignBytes, makeArbitrarySignDoc } from '../../core/utils/arbitrary.utils';
 import { encodeTransaction } from '../../core/utils/encode.utils';
 import { makeResponseMessage } from '../../core/utils/message.utils';
 import { normalizeRpcUrl, validateNetworkInput } from '../../core/utils/network.utils';
@@ -214,6 +225,59 @@ export class GnoWalletProvider implements TM2WalletProvider {
 
     const transactionResult = await this.wallet!.sendTransaction(signedTransaction, transactionEndpoint);
     return makeResponseMessage(WalletResponseSuccessType.TRANSACTION_SUCCESS, transactionResult);
+  }
+
+  async signArbitrary(options: SignArbitraryOptions): Promise<SignArbitraryResponse> {
+    const connected = this.wallet !== null;
+    if (!connected) {
+      return makeResponseMessage(WalletResponseFailureType.NOT_CONNECTED);
+    }
+
+    const { signer, data } = options;
+    // Same limits as the Adena extension, so a dApp behaves alike on both providers
+    if (
+      typeof signer !== 'string' ||
+      typeof data !== 'string' ||
+      data.length === 0 ||
+      new TextEncoder().encode(data).length > MAX_ARBITRARY_MESSAGE_BYTES
+    ) {
+      return makeResponseMessage(WalletResponseFailureType.INVALID_FORMAT);
+    }
+
+    const address = await this.wallet!.getAddress();
+    if (address !== signer) {
+      return makeResponseMessage(WalletResponseFailureType.ACCOUNT_MISMATCH);
+    }
+
+    try {
+      const chainId =
+        this.currentNetwork?.chainId ??
+        (await this.wallet!.getProvider()
+          .getStatus()
+          .then((response) => response.node_info.network));
+      if (!chainId) {
+        return makeResponseMessage(WalletResponseFailureType.NOT_INITIALIZED_NETWORK);
+      }
+
+      const signed = makeArbitrarySignDoc(chainId, signer, data);
+      const walletSigner = this.wallet!.getSigner();
+      const signature = await walletSigner.signData(getArbitrarySignBytes(signed));
+      const publicKey = Secp256k1.compressPubkey(await walletSigner.getPublicKey());
+
+      return makeResponseMessage(WalletResponseSuccessType.SIGN_ARBITRARY_SUCCESS, {
+        signed,
+        signature: {
+          pubKey: {
+            typeUrl: Secp256k1PubKeyType,
+            value: toBase64(publicKey),
+          },
+          signature: toBase64(signature),
+        },
+      });
+    } catch (e) {
+      console.error(e);
+      return makeResponseMessage(WalletResponseFailureType.SIGN_FAILED);
+    }
   }
 
   createMultisigAccount(): Promise<CreateMultisigAccountResponse> {

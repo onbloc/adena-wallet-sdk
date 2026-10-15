@@ -10,6 +10,9 @@ __metadata:
   resolution: "@adena-wallet/sdk@workspace:packages/sdk"
   dependencies:
     "@bufbuild/protobuf": "npm:2.15.0"
+    "@cosmjs/amino": "npm:0.39.0"
+    "@cosmjs/crypto": "npm:0.39.0"
+    "@cosmjs/encoding": "npm:0.39.0"
     "@gnolang/gno-js-client": "npm:3.1.0"
     "@gnolang/tm2-js-client": "npm:3.3.0"
     "@types/eslint": "npm:9"
@@ -476,7 +479,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@cosmjs/encoding@npm:^0.39.0":
+"@cosmjs/encoding@npm:0.39.0, @cosmjs/encoding@npm:^0.39.0":
   version: 0.39.0
   resolution: "@cosmjs/encoding@npm:0.39.0"
   dependencies:
