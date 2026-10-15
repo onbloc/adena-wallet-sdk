@@ -7,8 +7,10 @@ enum SignArbitraryResponseType {
 
 export type SignArbitraryParams = {
   signer: string;
-  // Text, not bytes: the wallet displays it and `Uint8Array` does not survive
-  // the JSON boundary to the extension
+  /**
+   * Text, not bytes: the wallet displays it and `Uint8Array` does not survive
+   * the JSON boundary to the extension
+   */
   data: string;
 };
 

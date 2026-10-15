@@ -150,14 +150,21 @@ export async function verifyArbitrarySignature(
       return false;
     }
 
-    // Verify against a rebuilt document rather than the one supplied, so the
-    // signature only counts if it covers exactly the canonical form.
+    // The supplied document must serialize to exactly the canonical form, so
+    // no field outside (chainId, signer, data) can ride along unsigned.
     const signBytes = getArbitrarySignBytes(makeArbitrarySignDoc(content.chainId, content.signer, content.data));
+    if (!equalBytes(getArbitrarySignBytes(proof.signed), signBytes)) {
+      return false;
+    }
 
     return Secp256k1.verifySignature(Secp256k1Signature.fromFixedLength(signatureBytes), sha256(signBytes), publicKey);
   } catch {
     return false;
   }
+}
+
+function equalBytes(a: Uint8Array, b: Uint8Array): boolean {
+  return a.length === b.length && a.every((byte, index) => byte === b[index]);
 }
 
 // Strict, and keeps a leading U+FEFF: `fromUtf8` would strip it while

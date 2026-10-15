@@ -18,19 +18,19 @@ export interface ArbitraryMessage {
   type: typeof ARBITRARY_MSG_TYPE;
   value: {
     signer: string;
-    // Base64 of the UTF-8 encoded message
+    /** Base64 of the UTF-8 encoded message */
     data: string;
   };
 }
 
 export interface ArbitrarySignature {
   pubKey: {
-    // `/tm.PubKeySecp256k1`
+    /** `/tm.PubKeySecp256k1` */
     typeUrl: string;
-    // Base64 of the compressed Secp256k1 key, not protobuf-wrapped
+    /** Base64 of the compressed Secp256k1 key, not protobuf-wrapped */
     value: string;
   };
-  // Base64 of the 64-byte `r || s` signature
+  /** Base64 of the 64-byte `r || s` signature */
   signature: string;
 }
 

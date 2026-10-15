@@ -1,6 +1,6 @@
 import { serializeSignDoc, StdSignDoc } from '@cosmjs/amino';
 import { fromBase64, fromUtf8, toBase64 } from '@cosmjs/encoding';
-import { Secp256k1PubKeyType, Wallet } from '@gnolang/tm2-js-client';
+import { Secp256k1PubKeyType, TxSignPayload, Wallet } from '@gnolang/tm2-js-client';
 
 import { ARBITRARY_MSG_TYPE, SignedArbitraryData } from '../../types';
 import {
@@ -169,6 +169,34 @@ describe('verifyArbitrarySignature', () => {
     const tampered = makeArbitrarySignDoc(CHAIN_ID, SIGNER, 'hellp');
 
     await expect(verifyArbitrarySignature({ ...proof, signed: tampered })).resolves.toBe(false);
+  });
+
+  // Keeps the original signature, so only the canonical-form check can catch it
+  it.each([
+    ['a non-zero sequence', (doc: TxSignPayload) => ({ ...doc, sequence: '7' })],
+    [
+      'a non-zero fee',
+      (doc: TxSignPayload) => ({ ...doc, fee: { amount: [{ denom: 'ugnot', amount: '1' }], gas: '100' } }),
+    ],
+    ['a memo', (doc: TxSignPayload) => ({ ...doc, memo: 'memo' })],
+    [
+      'an extra message field',
+      (doc: TxSignPayload) => ({ ...doc, msgs: [{ ...doc.msgs[0], value: { ...doc.msgs[0].value, extra: '1' } }] }),
+    ],
+    [
+      'a missing account number',
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      ({ account_number, ...doc }: TxSignPayload) => doc as TxSignPayload,
+    ],
+  ])('rejects a valid proof whose document was altered: %s', async (_, tamper) => {
+    const proof = await sign(MNEMONIC, CHAIN_ID, SIGNER, 'hello');
+
+    await expect(
+      verifyArbitrarySignature(
+        { ...proof, signed: tamper(proof.signed) },
+        { signer: SIGNER, chainId: CHAIN_ID, data: 'hello' }
+      )
+    ).resolves.toBe(false);
   });
 
   it('rejects a signature over a non-canonical document', async () => {
