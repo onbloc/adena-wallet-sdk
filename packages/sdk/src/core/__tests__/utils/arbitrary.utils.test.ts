@@ -91,6 +91,12 @@ describe('parseArbitrarySignDoc', () => {
     expect(parseArbitrarySignDoc(doc)).toEqual({ chainId: CHAIN_ID, signer: SIGNER, data: 'nonce: 1234' });
   });
 
+  it('keeps a leading byte order mark', () => {
+    const doc = makeArbitrarySignDoc(CHAIN_ID, SIGNER, '\uFEFFnonce: 1234');
+
+    expect(parseArbitrarySignDoc(doc)?.data).toBe('\uFEFFnonce: 1234');
+  });
+
   it.each([
     ['null', null],
     ['a non-object', 'doc'],
@@ -138,6 +144,14 @@ describe('verifyArbitrarySignature', () => {
     const proof = await sign(MNEMONIC, '', SIGNER, 'hello');
 
     await expect(verifyArbitrarySignature(proof, { chainId: '' })).resolves.toBe(true);
+  });
+
+  it('accepts a message that starts with a byte order mark', async () => {
+    const data = '\uFEFFLogin nonce 123';
+    const proof = await sign(MNEMONIC, CHAIN_ID, SIGNER, data);
+
+    await expect(verifyArbitrarySignature(proof)).resolves.toBe(true);
+    await expect(verifyArbitrarySignature(proof, { signer: SIGNER, chainId: CHAIN_ID, data })).resolves.toBe(true);
   });
 
   it.each([

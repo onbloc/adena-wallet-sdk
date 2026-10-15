@@ -1,6 +1,6 @@
 import { encodeSecp256k1Pubkey, pubkeyToAddress } from '@cosmjs/amino';
 import { Secp256k1, Secp256k1Signature, sha256 } from '@cosmjs/crypto';
-import { fromBase64, fromBech32, fromUtf8, toBase64, toUtf8 } from '@cosmjs/encoding';
+import { fromBase64, fromBech32, toBase64, toUtf8 } from '@cosmjs/encoding';
 import {
   Secp256k1PubKeyType,
   TxSignPayload,
@@ -98,7 +98,7 @@ export function parseArbitrarySignDoc(doc: unknown): ArbitrarySignDocContent | n
     return {
       chainId: doc.chain_id,
       signer,
-      data: fromUtf8(fromBase64(data)),
+      data: decodeUtf8(fromBase64(data)),
     };
   } catch {
     return null;
@@ -158,6 +158,12 @@ export async function verifyArbitrarySignature(
   } catch {
     return false;
   }
+}
+
+// Strict, and keeps a leading U+FEFF: `fromUtf8` would strip it while
+// `toUtf8` encodes it, so a BOM-prefixed message could never be rebuilt.
+function decodeUtf8(bytes: Uint8Array): string {
+  return new TextDecoder('utf-8', { fatal: true, ignoreBOM: true }).decode(bytes);
 }
 
 function isLowS(signature: Uint8Array): boolean {
