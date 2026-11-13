@@ -18,6 +18,21 @@ export const CHAIN_NAMESPACES = {
   OTHER: 'other',
 } as const;
 
+export const CONNECTOR_STATUS = {
+  NOT_READY: 'not_ready',
+  READY: 'ready',
+  CONNECTING: 'connecting',
+  CONNECTED: 'connected',
+  DISCONNECTING: 'disconnecting',
+  DISCONNECTED: 'disconnected',
+  ERRORED: 'errored',
+} as const;
+
+export const CONNECTOR_EVENTS = {
+  ...CONNECTOR_STATUS,
+  REHYDRATION_ERROR: 'rehydration_error',
+} as const;
+
 export const WALLET_CONNECTORS = {
   AUTH: 'auth',
 } as const;
