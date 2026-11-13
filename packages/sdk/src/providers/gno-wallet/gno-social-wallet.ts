@@ -1,7 +1,13 @@
 import { GnoWallet } from '@gnolang/gno-js-client';
-import { CustomChainConfig, WALLET_ADAPTERS } from '@web3auth/base';
-import { CommonPrivateKeyProvider } from '@web3auth/base-provider';
-import { Web3AuthNoModal } from '@web3auth/no-modal';
+import {
+  AUTH_CONNECTION,
+  AUTH_CONNECTION_TYPE,
+  AuthLoginParams,
+  CHAIN_NAMESPACES,
+  CustomChainConfig,
+  WALLET_CONNECTORS,
+  Web3AuthNoModal,
+} from '@web3auth/no-modal';
 
 import {
   SocialExtraLoginOptions,
@@ -15,14 +21,17 @@ import { GNO_ADDRESS_PREFIX } from '../../core/constants/chains.constant';
 import { hexToUint8Array } from '../../core/utils/encode.utils';
 import { GnoWalletProvider } from './gno-wallet';
 import { GetSocialUserProfileResponse } from '../../core/types/methods/get-social-user-profile.types';
-import { AuthAdapter, LoginConfig } from '@web3auth/auth-adapter';
+
+// Login parameters for the AUTH connector. Auth connections (formerly "verifiers")
+// are resolved from the Embedded Wallets dashboard in v11, so only the connection
+// type and its dashboard ID are passed from code.
+type SocialLoginParams = Pick<AuthLoginParams, 'authConnection' | 'authConnectionId' | 'extraLoginOptions'>;
 
 export class GnoSocialWalletProvider extends GnoWalletProvider {
   private web3auth: Web3AuthNoModal;
   private socialType: SocialType;
   private config: SocialGoogleConfigure | SocialTwitterConfigure | SocialEmailPasswordlessConfigure;
   private chainConfig: CustomChainConfig;
-  private loginConfig: LoginConfig;
   private extraLoginOptions: SocialExtraLoginOptions;
 
   constructor(
@@ -37,13 +46,16 @@ export class GnoSocialWalletProvider extends GnoWalletProvider {
       displayName: 'Gno.land',
       tickerName: 'Gno.land',
       ticker: 'ugnot',
-      chainNamespace: 'other',
+      chainNamespace: CHAIN_NAMESPACES.OTHER,
       chainId: this.config.chainId,
       rpcTarget: this.config.rpcTarget,
+      blockExplorerUrl: '',
+      logo: '',
     };
     this.extraLoginOptions = {};
 
-    this.loginConfig = this.createLoginConfig();
+    // Validate the configuration for the selected social type eagerly.
+    this.getAuthConnection();
 
     if (isSocialEmailPasswordlessConfigure(config)) {
       this.extraLoginOptions = { login_hint: config.email };
@@ -54,57 +66,44 @@ export class GnoSocialWalletProvider extends GnoWalletProvider {
     this.extraLoginOptions = extraLoginOptions;
   }
 
-  private createLoginConfig(): LoginConfig {
+  private getAuthConnection(): AUTH_CONNECTION_TYPE {
     switch (this.socialType) {
       case SocialType.GOOGLE:
         if (!isSocialGoogleConfigure(this.config)) {
           throw new Error('Invalid Google configuration');
         }
-
-        return {
-          [this.socialType]: {
-            typeOfLogin: 'google',
-            name: this.config.name,
-            clientId: this.config.googleClientId,
-            verifier: this.config.verifier,
-          },
-        };
+        return AUTH_CONNECTION.GOOGLE;
 
       case SocialType.TWITTER:
         if (!isSocialTwitterConfigure(this.config)) {
           throw new Error('Invalid Twitter configuration');
         }
-        return {
-          [this.socialType]: {
-            typeOfLogin: 'twitter',
-            name: this.config.name,
-            verifier: this.config.verifier,
-            clientId: this.config.authClientId,
-            jwtParameters: {
-              connection: 'twitter',
-              verifyerIdField: 'sub',
-              domain: this.config.domain,
-            },
-          },
-        };
+        return AUTH_CONNECTION.TWITTER;
 
       case SocialType.EMAIL:
         if (!isSocialEmailPasswordlessConfigure(this.config)) {
           throw new Error('Invalid Email configuration');
         }
-
-        return {
-          [this.socialType]: {
-            typeOfLogin: 'email_passwordless',
-            name: this.config.name,
-            verifier: this.config.verifier,
-            clientId: this.config.clientId,
-          },
-        };
+        return AUTH_CONNECTION.EMAIL_PASSWORDLESS;
 
       default:
         throw new Error('Unsupported social type');
     }
+  }
+
+  private createLoginParams(): SocialLoginParams {
+    const extraLoginOptions: SocialExtraLoginOptions = { ...this.extraLoginOptions };
+
+    // Twitter login goes through Auth0; keep passing the configured domain.
+    if (this.socialType === SocialType.TWITTER && isSocialTwitterConfigure(this.config) && !extraLoginOptions.domain) {
+      extraLoginOptions.domain = this.config.domain;
+    }
+
+    return {
+      authConnection: this.getAuthConnection(),
+      authConnectionId: this.config.verifier,
+      ...(Object.keys(extraLoginOptions).length > 0 && { extraLoginOptions: { ...extraLoginOptions } }),
+    };
   }
 
   public async connect(): Promise<boolean> {
@@ -115,16 +114,15 @@ export class GnoSocialWalletProvider extends GnoWalletProvider {
     try {
       this.web3auth = await this.initializeWeb3Auth();
 
-      const connectOptions = {
-        loginProvider: this.socialType,
-        ...(this.extraLoginOptions && { extraLoginOptions: this.extraLoginOptions }),
-      };
+      const loginParams = this.createLoginParams();
 
       if (this.web3auth.connected) {
         const userInfo = await this.web3auth.getUserInfo();
-        const currentLoginType = userInfo.typeOfLogin;
+        const isSameConnection =
+          userInfo.authConnection === loginParams.authConnection &&
+          userInfo.authConnectionId === loginParams.authConnectionId;
 
-        if (currentLoginType !== this.socialType) {
+        if (!isSameConnection) {
           const networks = [...this.networks];
           await this.disconnect();
 
@@ -141,9 +139,9 @@ export class GnoSocialWalletProvider extends GnoWalletProvider {
         }
       }
 
-      const provider = await this.web3auth.connectTo(WALLET_ADAPTERS.AUTH, connectOptions);
+      const connection = await this.web3auth.connectTo(WALLET_CONNECTORS.AUTH, loginParams);
 
-      if (!provider) {
+      if (!connection) {
         return false;
       }
 
@@ -172,35 +170,33 @@ export class GnoSocialWalletProvider extends GnoWalletProvider {
   };
 
   private async requestPrivateKey(): Promise<string> {
-    if (!this.web3auth.provider) {
+    // In v11 `provider` is write-only; the active provider lives on `connection`.
+    // For the `other` chain namespace this is a CommonPrivateKeyProvider.
+    const provider = this.web3auth.connection?.ethereumProvider;
+    if (!provider) {
       throw new Error('Not initialized web3 provider.');
     }
 
-    const privateKey = await this.web3auth.provider.request({
+    const privateKey = await provider.request({
       method: 'private_key',
     });
     return `${privateKey}`;
   }
 
   private async initializeWeb3Auth() {
-    const privateKeyProvider = new CommonPrivateKeyProvider({
-      config: { chainConfig: this.chainConfig },
-    });
-
+    // v11 removes adapters and code-side login configs. The AUTH connector is
+    // registered automatically from the dashboard's auth connections, and the
+    // `other` chain namespace makes it use a CommonPrivateKeyProvider internally.
     const web3auth = new Web3AuthNoModal({
       clientId: this.config.clientId,
       web3AuthNetwork: this.config.network,
-      privateKeyProvider,
-    });
-
-    const authAdapter = new AuthAdapter({
-      adapterSettings: {
+      chains: [this.chainConfig],
+      defaultChainId: this.chainConfig.chainId,
+      uiConfig: {
         uxMode: 'popup',
-        loginConfig: this.loginConfig,
       },
     });
 
-    web3auth.configureAdapter(authAdapter);
     await web3auth.init();
     return web3auth;
   }

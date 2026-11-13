@@ -29,9 +29,37 @@ export interface SocialUserInfo {
   email?: string;
   name?: string;
   profileImage?: string;
+  /**
+   * Auth connection type used to log in (e.g. `google`). Replaces `typeOfLogin` since Web3Auth v11.
+   */
+  authConnection?: LOGIN_PROVIDER_TYPE | CUSTOM_LOGIN_PROVIDER_TYPE;
+  /**
+   * Auth Connection ID configured on the dashboard. Replaces `verifier` since Web3Auth v11.
+   */
+  authConnectionId?: string;
+  /**
+   * Grouped Auth Connection ID. Replaces `aggregateVerifier` since Web3Auth v11.
+   */
+  groupedAuthConnectionId?: string;
+  /**
+   * User identifier for the auth connection. Replaces `verifierId` since Web3Auth v11.
+   */
+  userId?: string;
+  /**
+   * @deprecated Not returned since Web3Auth v11. Use `groupedAuthConnectionId`.
+   */
   aggregateVerifier?: string;
+  /**
+   * @deprecated Not returned since Web3Auth v11. Use `authConnectionId`.
+   */
   verifier?: string;
+  /**
+   * @deprecated Not returned since Web3Auth v11. Use `userId`.
+   */
   verifierId?: string;
+  /**
+   * @deprecated Not returned since Web3Auth v11. Use `authConnection`.
+   */
   typeOfLogin?: LOGIN_PROVIDER_TYPE | CUSTOM_LOGIN_PROVIDER_TYPE;
   dappShare?: string;
   /**

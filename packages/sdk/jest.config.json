@@ -30,5 +30,8 @@
     "node_modules",
     "coverage",
     "__mocks__"
-  ]
+  ],
+  "moduleNameMapper": {
+    "^@web3auth/no-modal$": "<rootDir>/src/__stubs__/web3auth-no-modal.ts"
+  }
 }
