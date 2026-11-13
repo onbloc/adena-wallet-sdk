@@ -94,3 +94,43 @@ describe('GnoSocialWalletProvider.connect', () => {
     expect(fresh.connectTo).toHaveBeenCalledTimes(1);
   });
 });
+
+describe('GnoSocialWalletProvider login params', () => {
+  const base = {
+    chainId: 'gnoland-1',
+    name: 'Gno.land',
+    rpcTarget: 'https://rpc.gno.land',
+    network: 'testnet' as const,
+    clientId: 'test-client-id',
+    authClientId: 'test-auth-client-id',
+  };
+
+  it('keeps the v9 Auth0 parameters for Twitter', async () => {
+    const provider = await GnoSocialWalletProvider.createTwitter({
+      ...base,
+      verifier: 'gno-twitter',
+      domain: 'example.auth0.com',
+    });
+
+    expect(provider['createLoginParams']()).toEqual({
+      authConnection: 'twitter',
+      authConnectionId: 'gno-twitter',
+      extraLoginOptions: { connection: 'twitter', domain: 'example.auth0.com' },
+    });
+  });
+
+  it('sends only the login hint for email passwordless', async () => {
+    const provider = await GnoSocialWalletProvider.createEmailPasswordless({
+      ...base,
+      verifier: 'gno-email',
+      domain: 'example.auth0.com',
+      email: 'user@example.com',
+    });
+
+    expect(provider['createLoginParams']()).toEqual({
+      authConnection: 'email_passwordless',
+      authConnectionId: 'gno-email',
+      extraLoginOptions: { login_hint: 'user@example.com' },
+    });
+  });
+});

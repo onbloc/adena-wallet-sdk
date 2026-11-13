@@ -119,11 +119,14 @@ export class GnoSocialWalletProvider extends GnoWalletProvider {
   }
 
   private createLoginParams(): SocialLoginParams {
-    const extraLoginOptions: SocialExtraLoginOptions = { ...this.extraLoginOptions };
+    const extraLoginOptions: SocialExtraLoginOptions & { connection?: string } = { ...this.extraLoginOptions };
 
-    // Twitter login goes through Auth0; keep passing the configured domain.
-    if (this.socialType === SocialType.TWITTER && isSocialTwitterConfigure(this.config) && !extraLoginOptions.domain) {
-      extraLoginOptions.domain = this.config.domain;
+    // Twitter login goes through Auth0. Keep sending the same Auth0 parameters the v9
+    // loginConfig sent (`jwtParameters.connection` and `domain`), so the same identity
+    // provider is used and existing users derive the same key.
+    if (this.socialType === SocialType.TWITTER && isSocialTwitterConfigure(this.config)) {
+      extraLoginOptions.connection = extraLoginOptions.connection || 'twitter';
+      extraLoginOptions.domain = extraLoginOptions.domain || this.config.domain;
     }
 
     return {
@@ -225,12 +228,18 @@ export class GnoSocialWalletProvider extends GnoWalletProvider {
   }
 
   private async initializeWeb3Auth() {
+    const web3auth = this.createWeb3Auth();
+    await web3auth.init();
+    return web3auth;
+  }
+
+  private createWeb3Auth(): Web3AuthNoModal {
     // v11 removes adapters and code-side login configs. The AUTH connector is
     // registered automatically from the dashboard's auth connections, and the
     // `other` chain namespace makes it use a CommonPrivateKeyProvider internally.
     // `defaultChainId` is intentionally omitted: v11 rejects non-hex values, and
     // GnoWeb3AuthNoModal already pins the only chain to the Gno chain.
-    const web3auth = new GnoWeb3AuthNoModal(
+    return new GnoWeb3AuthNoModal(
       {
         clientId: this.config.clientId,
         web3AuthNetwork: this.config.network,
@@ -241,9 +250,6 @@ export class GnoSocialWalletProvider extends GnoWalletProvider {
       },
       this.chainConfig.chainId
     );
-
-    await web3auth.init();
-    return web3auth;
   }
 
   public static async createGoogle(config: SocialGoogleConfigure): Promise<GnoSocialWalletProvider> {
