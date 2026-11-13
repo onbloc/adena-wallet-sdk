@@ -5,6 +5,8 @@ import {
   AuthLoginParams,
   CHAIN_NAMESPACES,
   CustomChainConfig,
+  IWeb3AuthCoreOptions,
+  ProjectConfig,
   WALLET_CONNECTORS,
   Web3AuthNoModal,
 } from '@web3auth/no-modal';
@@ -26,6 +28,31 @@ import { GetSocialUserProfileResponse } from '../../core/types/methods/get-socia
 // are resolved from the Embedded Wallets dashboard in v11, so only the connection
 // type and its dashboard ID are passed from code.
 type SocialLoginParams = Pick<AuthLoginParams, 'authConnection' | 'authConnectionId' | 'extraLoginOptions'>;
+
+/**
+ * Web3AuthNoModal pinned to a single Gno chain.
+ *
+ * v11 merges chains configured on the dashboard in front of the ones passed in
+ * code, and the initial chain decides which provider the AUTH connector sets up
+ * (EVM/Solana chains get the wallet-services embed, `other` gets a private key
+ * provider). `defaultChainId` cannot be used to pin the Gno chain because v11
+ * requires it to be a hex string. Restricting the merged list to the Gno chain
+ * keeps the initial chain, the AUTH connector provider and `private_key` export
+ * on the `other` namespace regardless of the dashboard chain settings.
+ */
+class GnoWeb3AuthNoModal extends Web3AuthNoModal {
+  private readonly gnoChainId: string;
+
+  constructor(options: IWeb3AuthCoreOptions, gnoChainId: string) {
+    super(options);
+    this.gnoChainId = gnoChainId;
+  }
+
+  protected initChainsConfig(projectConfig: ProjectConfig): void {
+    super.initChainsConfig(projectConfig);
+    this.coreOptions.chains = (this.coreOptions.chains || []).filter((chain) => chain.chainId === this.gnoChainId);
+  }
+}
 
 export class GnoSocialWalletProvider extends GnoWalletProvider {
   private web3auth: Web3AuthNoModal;
@@ -117,18 +144,7 @@ export class GnoSocialWalletProvider extends GnoWalletProvider {
       const loginParams = this.createLoginParams();
 
       if (this.web3auth.connected) {
-        const userInfo = await this.web3auth.getUserInfo();
-        const isSameConnection =
-          userInfo.authConnection === loginParams.authConnection &&
-          userInfo.authConnectionId === loginParams.authConnectionId;
-
-        if (!isSameConnection) {
-          const networks = [...this.networks];
-          await this.disconnect();
-
-          this.setNetworks(networks);
-          this.web3auth = await this.initializeWeb3Auth();
-        } else {
+        if (await this.isRestoredSessionReusable(loginParams)) {
           const privateKey = await this.requestPrivateKey();
           const privateKeyBytes = hexToUint8Array(privateKey);
           const wallet = await GnoWallet.fromPrivateKey(privateKeyBytes, {
@@ -137,6 +153,13 @@ export class GnoSocialWalletProvider extends GnoWalletProvider {
           this.wallet = wallet;
           return this.connectProvider();
         }
+
+        // The restored session belongs to another login or is stale: clear it and log in again.
+        const networks = [...this.networks];
+        await this.disconnect();
+
+        this.setNetworks(networks);
+        this.web3auth = await this.initializeWeb3Auth();
       }
 
       const connection = await this.web3auth.connectTo(WALLET_CONNECTORS.AUTH, loginParams);
@@ -156,6 +179,24 @@ export class GnoSocialWalletProvider extends GnoWalletProvider {
       return this.connectProvider();
     } catch (error) {
       console.error('Connection failed:', error);
+      return false;
+    }
+  }
+
+  /**
+   * Checks whether the session restored by `init()` was created with the same auth connection.
+   * In v11 `getUserInfo()` also fetches linked accounts over the network and throws when no access
+   * token can be obtained, so any failure is treated as a stale session instead of aborting `connect()`.
+   */
+  private async isRestoredSessionReusable(loginParams: SocialLoginParams): Promise<boolean> {
+    try {
+      const userInfo = await this.web3auth.getUserInfo();
+      return (
+        userInfo.authConnection === loginParams.authConnection &&
+        userInfo.authConnectionId === loginParams.authConnectionId
+      );
+    } catch (error) {
+      console.warn('Failed to read the restored Web3Auth session, logging in again:', error);
       return false;
     }
   }
@@ -187,15 +228,19 @@ export class GnoSocialWalletProvider extends GnoWalletProvider {
     // v11 removes adapters and code-side login configs. The AUTH connector is
     // registered automatically from the dashboard's auth connections, and the
     // `other` chain namespace makes it use a CommonPrivateKeyProvider internally.
-    const web3auth = new Web3AuthNoModal({
-      clientId: this.config.clientId,
-      web3AuthNetwork: this.config.network,
-      chains: [this.chainConfig],
-      defaultChainId: this.chainConfig.chainId,
-      uiConfig: {
-        uxMode: 'popup',
+    // `defaultChainId` is intentionally omitted: v11 rejects non-hex values, and
+    // GnoWeb3AuthNoModal already pins the only chain to the Gno chain.
+    const web3auth = new GnoWeb3AuthNoModal(
+      {
+        clientId: this.config.clientId,
+        web3AuthNetwork: this.config.network,
+        chains: [this.chainConfig],
+        uiConfig: {
+          uxMode: 'popup',
+        },
       },
-    });
+      this.chainConfig.chainId
+    );
 
     await web3auth.init();
     return web3auth;
