@@ -4,6 +4,8 @@ import {
   AUTH_CONNECTION_TYPE,
   AuthLoginParams,
   CHAIN_NAMESPACES,
+  CONNECTOR_EVENTS,
+  CONNECTOR_STATUS,
   CustomChainConfig,
   IWeb3AuthCoreOptions,
   ProjectConfig,
@@ -28,6 +30,62 @@ import { GetSocialUserProfileResponse } from '../../core/types/methods/get-socia
 // are resolved from the Embedded Wallets dashboard in v11, so only the connection
 // type and its dashboard ID are passed from code.
 type SocialLoginParams = Pick<AuthLoginParams, 'authConnection' | 'authConnectionId' | 'extraLoginOptions'>;
+
+// Upper bound for the AUTH connector to become usable after `init()` resolves
+// (auth iframe load plus, for a cached session, its rehydration).
+const AUTH_CONNECTOR_READY_TIMEOUT_MS = 30_000;
+
+type EventSource = {
+  on(event: string, listener: (...args: unknown[]) => void): unknown;
+  removeListener(event: string, listener: (...args: unknown[]) => void): unknown;
+};
+
+type EventTrigger = { source: EventSource; event: string };
+
+/**
+ * Settles on the first matching event: resolves on any `resolveOn` event, rejects with the
+ * event payload on any `rejectOn` event, and rejects with `timeoutMessage` after `timeoutMs`.
+ * Every listener and the timer are removed whichever way it settles.
+ */
+function waitForEvent({
+  resolveOn,
+  rejectOn = [],
+  timeoutMs,
+  timeoutMessage,
+}: {
+  resolveOn: EventTrigger[];
+  rejectOn?: EventTrigger[];
+  timeoutMs: number;
+  timeoutMessage: string;
+}): Promise<void> {
+  return new Promise<void>((resolve, reject) => {
+    const subscriptions: { source: EventSource; event: string; listener: (...args: unknown[]) => void }[] = [];
+
+    const cleanup = () => {
+      clearTimeout(timer);
+      subscriptions.forEach(({ source, event, listener }) => source.removeListener(event, listener));
+    };
+
+    const subscribe = ({ source, event }: EventTrigger, settle: (payload: unknown) => void) => {
+      const listener = (payload?: unknown) => {
+        cleanup();
+        settle(payload);
+      };
+      subscriptions.push({ source, event, listener });
+      source.on(event, listener);
+    };
+
+    const timer = setTimeout(() => {
+      cleanup();
+      reject(new Error(timeoutMessage));
+    }, timeoutMs);
+
+    resolveOn.forEach((trigger) => subscribe(trigger, () => resolve()));
+    rejectOn.forEach((trigger) =>
+      subscribe(trigger, (error) => reject(error instanceof Error ? error : new Error(String(error))))
+    );
+  });
+}
 
 /**
  * Web3AuthNoModal pinned to a single Gno chain.
@@ -230,7 +288,58 @@ export class GnoSocialWalletProvider extends GnoWalletProvider {
   private async initializeWeb3Auth() {
     const web3auth = this.createWeb3Auth();
     await web3auth.init();
+    await this.waitForAuthConnectorReady(web3auth);
     return web3auth;
+  }
+
+  /**
+   * Waits until the AUTH connector can be used by `connect()`.
+   *
+   * In v11 `init()` resolves before connectors finish initializing: connectors are set up from an
+   * un-awaited `CONNECTORS_UPDATED` listener, and the AUTH connector only becomes `ready` once the
+   * auth iframe has loaded. Calling `connectTo()` before that makes `connector.connect()` throw
+   * inside `connectTo()`'s promise executor, where nothing catches it, so `connectTo()` never settles.
+   *
+   * When a cached session exists, the connector starts rehydrating it right after emitting `ready`
+   * (status `connecting`). That is waited for too, so `web3auth.connected` reflects the restored
+   * session and `connectTo()` is not called while the connector is still connecting.
+   *
+   * Connector init failures are only logged by Web3Auth, never re-thrown, so the timeout is what
+   * surfaces them.
+   */
+  private async waitForAuthConnectorReady(
+    web3auth: Web3AuthNoModal,
+    timeoutMs = AUTH_CONNECTOR_READY_TIMEOUT_MS
+  ): Promise<void> {
+    const connector = web3auth.getConnector(WALLET_CONNECTORS.AUTH);
+    if (!connector) {
+      // v11 only registers the AUTH connector when the dashboard project config has `embeddedWalletAuth`.
+      throw new Error(
+        'Web3Auth auth connector is not available. Check the embedded wallet auth connections on the Web3Auth dashboard.'
+      );
+    }
+
+    if (connector.status === CONNECTOR_STATUS.NOT_READY) {
+      await waitForEvent({
+        resolveOn: [{ source: connector, event: CONNECTOR_EVENTS.READY }],
+        rejectOn: [{ source: connector, event: CONNECTOR_EVENTS.ERRORED }],
+        timeoutMs,
+        timeoutMessage: 'Web3Auth auth connector was not ready in time',
+      });
+    }
+
+    if (connector.status === CONNECTOR_STATUS.CONNECTING) {
+      // Rehydration either ends with Web3Auth emitting `connected` (after it records the connection)
+      // or with the connector emitting `rehydration_error` and going back to `ready`.
+      await waitForEvent({
+        resolveOn: [
+          { source: web3auth, event: CONNECTOR_EVENTS.CONNECTED },
+          { source: connector, event: CONNECTOR_EVENTS.REHYDRATION_ERROR },
+        ],
+        timeoutMs,
+        timeoutMessage: 'Web3Auth session was not restored in time',
+      });
+    }
   }
 
   private createWeb3Auth(): Web3AuthNoModal {
